@@ -1,35 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from "react";
+import { searchManga } from "./api/jikan";
+import MangaCard from "./components/MangaCard"; 
+import type { Manga } from "./types/manga";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [query, setQuery] = useState("");
+  const [mangaList, setMangaList] = useState<Manga[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const results = await searchManga(query);
+    setMangaList(results);
+    setLoading(false);
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+    <div className="p-6 max-w-3xl mx-auto">
+      <form onSubmit={handleSearch} className="flex mb-4">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="flex-1 border p-2 rounded-l"
+          placeholder="Search manga..."
+        />
+        <button className="bg-purple-600 text-white px-4 py-2 rounded-r" type="submit">
+          Search
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+      </form>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {mangaList.map((manga) => (
+            <MangaCard key={manga.mal_id} manga={manga} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
+
