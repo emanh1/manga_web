@@ -10,7 +10,7 @@ export const searchManga = async (query: string): Promise<TManga[]> => {
   return response.data.data;
 };
 
-export const getTopManga = async (limit = 10): Promise<TManga[]> => {
+export const getTopManga = async (limit = 20): Promise<TManga[]> => {
   const response = await axios.get(`${BASE_URL}/top/manga`, {
     params: { limit },
   });
