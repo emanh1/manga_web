@@ -4,7 +4,7 @@ import { searchManga } from "../api/jikan";
 import type { Manga } from "../types/manga";
 import SearchBar from "../components/SearchBar";
 import MangaCard from "../components/MangaCard";
-import PopularManga from "../components/PopularManga";
+import TopRatedManga from "../components/TopRatedManga";
 
 const Home: React.FC = () => {
   const [query, setQuery] = useState("");
@@ -33,7 +33,7 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {!query && <PopularManga />}
+      {!query && <TopRatedManga />}
 
       {query && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

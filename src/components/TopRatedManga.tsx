@@ -4,31 +4,31 @@ import type { Manga } from "../types/manga";
 import MangaCard from "./MangaCard";
 import { Link } from "react-router-dom";
 
-const PopularManga: React.FC = () => {
-  const [popular, setPopular] = useState<Manga[]>([]);
+const TopRatedManga: React.FC = () => {
+  const [topRated, setTopRated] = useState<Manga[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchPopular() {
+    async function fetchTopRated() {
       setLoading(true);
       try {
         const data = await getTopManga(8);
-        setPopular(data);
+        setTopRated(data);
       } catch {
-        setPopular([]);
+        setTopRated([]);
       }
       setLoading(false);
     }
-    fetchPopular();
+    fetchTopRated();
   }, []);
 
-  if (loading) return <p>Loading popular manga...</p>;
+  if (loading) return <p>Loading top rated manga...</p>;
 
   return (
     <section className="mt-6">
-      <h2 className="text-2xl font-semibold mb-4">Popular Manga</h2>
+      <h2 className="text-2xl font-semibold mb-4">Top Rated Manga</h2>
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        {popular.map((manga) => (
+        {topRated.map((manga) => (
             <Link to={`/manga/${manga.mal_id}`} key={manga.mal_id}>
               <MangaCard manga={manga} />
             </Link>
@@ -38,4 +38,4 @@ const PopularManga: React.FC = () => {
   );
 };
 
-export default PopularManga;
+export default TopRatedManga;
