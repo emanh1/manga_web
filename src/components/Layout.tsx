@@ -15,7 +15,7 @@ const Layout: React.FC<Props> = ({ children }) => {
           </Link>
         </div>
       </nav>
-      <main className="bg-black container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8">
         {children}
       </main>
     </div>
