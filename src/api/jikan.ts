@@ -3,9 +3,9 @@ import type { TManga, TMangaDetails, TMangaRecommendation } from "../types/manga
 
 const BASE_URL = "https://api.jikan.moe/v4";
 
-export const searchManga = async (query: string): Promise<TManga[]> => {
+export const searchManga = async (query: string, limit = 10): Promise<TManga[]> => {
   const response = await axios.get(`${BASE_URL}/manga`, {
-    params: { q: query, limit: 10 },
+    params: { q: query, limit: limit },
   });
   return response.data.data;
 };
