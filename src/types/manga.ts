@@ -9,7 +9,7 @@ export type Manga = {
   };
 };
 
-export type MangaDetails = Manga & {
+export type TMangaDetails = Manga & {
   status: string;
   chapters: number | null;
   score: number;

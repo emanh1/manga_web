@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getMangaDetails } from "../api/jikan";
-import type { MangaDetails } from "../types/manga";
+import type { TMangaDetails } from "../types/manga";
 
 const MangaDetails: React.FC = () => {
   const { id } = useParams();
-  const [manga, setManga] = useState<MangaDetails | null>(null);
+  const [manga, setManga] = useState<TMangaDetails | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
