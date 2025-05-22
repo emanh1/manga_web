@@ -5,6 +5,7 @@ import type { TManga } from "../types/manga";
 import SearchBar from "../components/SearchBar";
 import MangaCard from "../components/MangaCard";
 import TopRatedManga from "../components/TopRatedManga";
+import MangaRecommendations from "../components/MangaRecommendations";
 
 const Home: React.FC = () => {
   const [query, setQuery] = useState("");
@@ -33,7 +34,6 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {!query && <TopRatedManga />}
 
       {query && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -44,6 +44,10 @@ const Home: React.FC = () => {
           ))}
         </div>
       )}
+
+      <MangaRecommendations/>
+      <TopRatedManga />
+
     </div>
   );
 };
