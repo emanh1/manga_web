@@ -1,8 +1,8 @@
 import React from "react";
-import type { Manga } from "../types/manga";
+import type { TManga } from "../types/manga";
 
 type Props = {
-  manga: Manga;
+  manga: TManga;
 };
 
 const MangaCard: React.FC<Props> = ({ manga }) => (

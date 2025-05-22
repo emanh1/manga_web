@@ -1,4 +1,4 @@
-export type Manga = {
+export type TManga = {
   mal_id: number;
   title: string;
   synopsis: string;
@@ -25,7 +25,7 @@ published: {
   };
 };
 
-export type TMangaDetails = Manga & {
+export type TMangaDetails = TManga & {
   status: string;
   chapters: number | null;
   score: number;
@@ -37,3 +37,31 @@ export type TMangaDetails = Manga & {
     };
   };
 };
+
+export interface TMangaRecommendationEntry {
+  mal_id: number;
+  title: string;
+  url: string;
+  images: {
+    jpg: {
+      image_url: string;
+      small_image_url: string;
+      large_image_url: string;
+    };
+    webp: {
+      image_url: string;
+      small_image_url: string;
+      large_image_url: string;
+    };
+  };
+}
+
+export interface TMangaRecommendation {
+  mal_id: string;
+  entry: TMangaRecommendationEntry[];
+  content: string;
+  user: {
+    url: string;
+    username: string;
+  };
+}

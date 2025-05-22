@@ -1,14 +1,14 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { searchManga } from "../api/jikan";
-import type { Manga } from "../types/manga";
+import type { TManga } from "../types/manga";
 import SearchBar from "../components/SearchBar";
 import MangaCard from "../components/MangaCard";
 import TopRatedManga from "../components/TopRatedManga";
 
 const Home: React.FC = () => {
   const [query, setQuery] = useState("");
-  const [mangaList, setMangaList] = useState<Manga[]>([]);
+  const [mangaList, setMangaList] = useState<TManga[]>([]);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {

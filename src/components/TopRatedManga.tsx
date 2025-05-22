@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { getTopManga } from "../api/jikan";
-import type { Manga } from "../types/manga";
+import type { TManga } from "../types/manga";
 import MangaCard from "./MangaCard";
 import { Link } from "react-router-dom";
 
 const TopRatedManga: React.FC = () => {
-  const [topRated, setTopRated] = useState<Manga[]>([]);
+  const [topRated, setTopRated] = useState<TManga[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
