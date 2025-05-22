@@ -14,6 +14,7 @@ const MangaCard: React.FC<Props> = ({ manga }) => (
       loading="lazy"
     />
     <h2 className="text-xl font-bold mt-2 text-purple-700">{manga.title}</h2>
+    <p>{manga.published.prop.from.year}</p>
     <p className="text-sm text-gray-600 mt-1 line-clamp-3">{manga.synopsis}</p>
   </div>
 );
