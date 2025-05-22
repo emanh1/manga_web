@@ -7,6 +7,22 @@ export type Manga = {
       image_url: string;
     };
   };
+published: {
+    from: string | null;
+    to: string | null;
+    prop: {
+      from: {
+        day: number | null;
+        month: number | null;
+        year: number | null;
+      };
+      to: {
+        day: number | null;
+        month: number | null;
+        year: number | null;
+      };
+    };
+  };
 };
 
 export type TMangaDetails = Manga & {
