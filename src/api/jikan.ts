@@ -21,3 +21,10 @@ export const getMangaDetails = async (id: number): Promise<TMangaDetails> => {
   const response = await axios.get(`${BASE_URL}/manga/${id}/full`);
   return response.data.data;
 };
+
+export const getMangaRecommendations = async (limit = 20): Promise<TMangaRecommendation[]> => {
+  const response = await axios.get(`${BASE_URL}/recommendations/manga`, {
+    params: { limit },
+  });
+  return response.data.data;
+};
