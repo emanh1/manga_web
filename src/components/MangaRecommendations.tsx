@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { getMangaRecommendations } from "../api/jikan";
 import type { TMangaRecommendation } from "../types/manga";
+import { RecommendationCard } from "./RecommendationCard";
 
 const MangaRecommendations: React.FC = () => {
   const [recommendations, setRecommendations] = useState<TMangaRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchRecommendations() {
@@ -27,44 +28,20 @@ const MangaRecommendations: React.FC = () => {
   return (
     <section className="mt-8">
       <h2 className="text-2xl font-semibold mb-4">Recommended Manga</h2>
-      <div className="grid grid-cols-1 gap-6">
-        {recommendations.map((rec) => (
-          <div key={rec.mal_id} className="bg-white p-4 rounded-lg shadow">
-            <div className="flex flex-wrap gap-4 mb-4">
-              {rec.entry.map((manga) => (
-                <Link
-                  key={manga.mal_id}
-                  to={`/manga/${manga.mal_id}`}
-                  className="flex-shrink-0 w-24"
-                >
-                  <img
-                    src={manga.images.jpg.image_url}
-                    alt={manga.title}
-                    className="w-full h-32 object-cover rounded"
-                    loading="lazy"
-                  />
-                  <p className="text-sm mt-1 text-gray-800 line-clamp-2">
-                    {manga.title}
-                  </p>
-                </Link>
-              ))}
-            </div>
-            <div className="mt-2">
-              <p className="text-gray-600">{rec.content}</p>
-              <p className="text-sm text-gray-500 mt-2">
-                Recommended by{" "}
-                <a
-                  href={rec.user.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-purple-600 hover:underline"
-                >
-                  {rec.user.username}
-                </a>
-              </p>
-            </div>
+      <div className="relative">
+        <div className="overflow-x-auto pb-4">
+          <div className="flex gap-4 w-max">
+            {recommendations.map((rec) => (
+              <div className="w-[600px] flex-shrink-0" key={rec.mal_id}>
+                <RecommendationCard
+                  recommendation={rec}
+                  isExpanded={expandedId === rec.mal_id}
+                  onToggle={() => setExpandedId(expandedId === rec.mal_id ? null : rec.mal_id)}
+                />
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </section>
   );
