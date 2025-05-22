@@ -8,3 +8,16 @@ export type Manga = {
     };
   };
 };
+
+export type MangaDetails = Manga & {
+  status: string;
+  chapters: number | null;
+  score: number;
+  genres: Array<{ name: string }>;
+  images: {
+    jpg: {
+      image_url: string;
+      large_image_url: string;
+    };
+  };
+};
