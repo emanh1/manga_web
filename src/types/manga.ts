@@ -65,3 +65,17 @@ export interface TMangaRecommendation {
     username: string;
   };
 }
+
+export type TChapterSource = {
+  id: string;
+  name: string;
+  url: string;
+};
+
+export type TChapter = {
+  id: string;
+  number: number;
+  title: string;
+  url: string;
+  source: TChapterSource;
+};
