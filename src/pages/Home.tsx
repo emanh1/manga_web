@@ -36,10 +36,6 @@ const Home: React.FC = () => {
     performSearch();
   }, [debouncedQuery]);
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
   const handleRandomManga = async () => {
     setLoading(true);
     try {
@@ -57,7 +53,6 @@ const Home: React.FC = () => {
       <SearchBar 
         query={query}
         setQuery={setQuery}
-        onSearch={handleSearch}
         onRandomClick={handleRandomManga}
         isLoading={loading}
       />
