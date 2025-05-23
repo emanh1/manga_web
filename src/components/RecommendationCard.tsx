@@ -15,12 +15,9 @@ export const RecommendationCard: React.FC<{
   useEffect(() => {
     const fetchMangaDetails = async () => {
       try {
-        const [first, second] = await Promise.all([
-          getMangaDetails(recommendation.entry[0].mal_id),
-          getMangaDetails(recommendation.entry[1].mal_id)
-        ]);
-
+        const first = await getMangaDetails(recommendation.entry[0].mal_id);
         setFirstManga(first);
+        const second = await getMangaDetails(recommendation.entry[1].mal_id);
         setSecondManga(second);
       } catch (error) {
         console.error("Error fetching manga details:", error);
