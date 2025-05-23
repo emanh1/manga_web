@@ -69,7 +69,7 @@ export const RecommendationCard: React.FC<{
           className="text-purple-600 text-sm hover:underline"
           onClick={onToggle}
         >
-          {isExpanded ? 'Show less' : 'Show recommendation'}
+          {isExpanded ? 'Show less' : 'Show details'}
         </button>
       </div>
     </div>
