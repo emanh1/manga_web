@@ -80,3 +80,10 @@ export const getMangaRecommendations = async (limit = 20): Promise<TMangaRecomme
     return response.data.data.slice(0, limit);
   });
 };
+
+export const getRandomManga = async (): Promise<TMangaDetails> => {
+  return handleApiRequest(async () => {
+    const response = await api.get('/random/manga');
+    return response.data.data;
+  });
+};
