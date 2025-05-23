@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getMangaDetails } from "../api/jikan";
-import type { TMangaDetails } from "../types/manga";
+import type { TMangaDetails, TChapter } from "../types/manga";
 
 const MangaDetails: React.FC = () => {
   const { id } = useParams();
   const [manga, setManga] = useState<TMangaDetails | null>(null);
   const [loading, setLoading] = useState(true);
+  const [chapters, setChapters] = useState<TChapter[]>([]);
 
   useEffect(() => {
     async function fetchManga() {
@@ -15,6 +16,7 @@ const MangaDetails: React.FC = () => {
       try {
         const data = await getMangaDetails(parseInt(id));
         setManga(data);
+        setChapters([]);
       } catch (error) {
         console.error(error);
       }
@@ -22,6 +24,7 @@ const MangaDetails: React.FC = () => {
     }
     fetchManga();
   }, [id]);
+
 
   if (loading) return <div>Loading...</div>;
   if (!manga) return <div>Manga not found</div>;
@@ -54,6 +57,35 @@ const MangaDetails: React.FC = () => {
               <h3 className="font-semibold">Genres</h3>
               <p>{manga.genres.map(g => g.name).join(", ")}</p>
             </div>
+          </div>
+
+          
+          <div className="mt-8">
+            <h2 className="text-2xl font-bold mb-4">Read Chapters</h2>
+            {loading ? (
+              <div>Loading chapters...</div>
+            ) : chapters.length > 0 ? (
+              <div className="grid grid-cols-2 gap-4">
+                {chapters.map((chapter) => (
+                  <a
+                    key={chapter.id}
+                    href={chapter.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+                  >
+                    Chapter {chapter.number}: {chapter.title}
+                    <span className="text-sm text-gray-500 block">
+                      Source: {chapter.source.name}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            ) : (
+              <div className="text-gray-600">
+                No reading sources found for this manga.
+              </div>
+            )}
           </div>
         </div>
       </div>
