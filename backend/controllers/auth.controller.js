@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
 import db from '../models/index.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 export const register = async (req, res) => {
   try {
