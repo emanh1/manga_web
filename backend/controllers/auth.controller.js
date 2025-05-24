@@ -90,3 +90,21 @@ export const login = async (req, res) => {
     });
   }
 };
+
+export const getMe = async (req, res) => {
+  try {
+    const user = req.user;
+
+    res.json({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error fetching user data',
+      error: error.message
+    });
+  }
+};
