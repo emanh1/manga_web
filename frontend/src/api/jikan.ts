@@ -8,7 +8,7 @@ const MIN_DELAY_MS = 1000;
 const MAX_RETRIES = 3;
 
 const api = setupCache(axios.create({ baseURL: BASE_URL }), {
-  ttl: 1000 * 60 * 5,
+  ttl: 1000 * 60 * 15,
   methods: ['get'],
   cacheTakeover: false,
   generateKey: (request) => {
