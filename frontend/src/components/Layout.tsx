@@ -24,14 +24,6 @@ const Layout: React.FC<Props> = ({ children }) => {
               <Link to="/" className="text-xl font-bold text-purple-600">
                 Manga Web
               </Link>
-              {user && (
-                <Link
-                  to="/upload"
-                  className="text-gray-600 hover:text-purple-600 transition"
-                >
-                  Upload Manga
-                </Link>
-              )}
               {user?.role === 'admin' && (
                 <Link
                   to="/admin/review"
