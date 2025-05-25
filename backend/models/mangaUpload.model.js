@@ -11,8 +11,32 @@ export default (sequelize) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    chapter: {
+    malId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    volume: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    language: {
       type: DataTypes.STRING,
+      allowNull: false,
+    },
+    chapterTitle: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    chapter: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    isOneshot: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    fileOrder: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     filePath: {
