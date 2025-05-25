@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { getMangaDetails } from "../api/jikan";
 import type { TMangaDetails, TChapter } from "../types/manga";
+import toast from 'react-hot-toast';
 
 const MangaDetails: React.FC = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [manga, setManga] = useState<TMangaDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [chapters, setChapters] = useState<TChapter[]>([]);
@@ -19,12 +21,12 @@ const MangaDetails: React.FC = () => {
         setChapters([]);
       } catch (error) {
         console.error(error);
+        toast.error('Failed to fetch manga details');
       }
       setLoading(false);
     }
     fetchManga();
   }, [id]);
-
 
   if (loading) return <div>Loading...</div>;
   if (!manga) return <div>Manga not found</div>;
@@ -38,7 +40,16 @@ const MangaDetails: React.FC = () => {
           className="w-full rounded-lg shadow-lg"
         />
         <div className="md:col-span-2">
-          <h1 className="text-3xl font-bold mb-4">{manga.title}</h1>
+          <div className="flex justify-between items-start mb-4">
+            <h1 className="text-3xl font-bold">{manga.title}</h1>
+            <button
+              onClick={() => navigate(`/upload/${id}`)}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            >
+              Upload Chapter
+            </button>
+          </div>
+
           <p className="text-gray-600 mb-4">{manga.synopsis}</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -59,7 +70,6 @@ const MangaDetails: React.FC = () => {
             </div>
           </div>
 
-          
           <div className="mt-8">
             <h2 className="text-2xl font-bold mb-4">Read Chapters</h2>
             {loading ? (
