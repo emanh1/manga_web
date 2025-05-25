@@ -51,7 +51,7 @@ const MangaDetails: React.FC = () => {
             </div>
             <div>
               <h3 className="font-semibold">Score</h3>
-              <p>{manga.score}/10</p>
+              <p>{manga.score || "na"}/10</p>
             </div>
             <div>
               <h3 className="font-semibold">Genres</h3>
