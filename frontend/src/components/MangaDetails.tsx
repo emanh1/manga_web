@@ -64,7 +64,7 @@ const MangaDetails: React.FC = () => {
             </button>
           </div>
 
-          <p className="text-gray-600 mb-4">{manga.synopsis}</p>
+          <p className="text-gray-600 mb-4">{manga.synopsis || "No synopsis found"}}</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="font-semibold">Status</h3>
@@ -76,7 +76,7 @@ const MangaDetails: React.FC = () => {
             </div>
             <div>
               <h3 className="font-semibold">Score</h3>
-              <p>{manga.score}/10</p>
+              <p>{manga.score || "na"}/10</p>
             </div>
             <div>
               <h3 className="font-semibold">Genres</h3>
