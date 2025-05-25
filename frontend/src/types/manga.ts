@@ -66,12 +66,6 @@ export interface TMangaRecommendation {
   };
 }
 
-export type TChapterSource = {
-  id: string;
-  name: string;
-  url: string;
-};
-
 export type TChapter = {
   id: string;
   number: number;
@@ -79,3 +73,24 @@ export type TChapter = {
   url: string;
   source: TChapterSource;
 };
+
+export type TChapterSource = {
+  id: string;
+  name: string;
+  url: string;
+};
+
+export interface MangaUploadChapter {
+  id: number;
+  title: string;
+  chapter: number | null;
+  volume: number | null;
+  chapterTitle: string | null;
+  filePath: string;
+  language: string;
+  uploader: {
+    username: string;
+  };
+  createdAt: string;
+  status: 'pending' | 'approved' | 'rejected';
+}
