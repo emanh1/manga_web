@@ -4,7 +4,7 @@ import fs from 'fs';
 import db from '../models/index.js';
 import dotenv from 'dotenv';
 dotenv.config();
-
+//TODO: Use ipfs node
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = process.env.UPLOAD_DIR;
@@ -88,8 +88,18 @@ export const uploadMangaChapter = async (req, res) => {
 
 export const getUploads = async (req, res) => {
   try {
+    const { malId } = req.query;
+    const where = {};
+
+    if (malId) {
+      where.malId = malId;
+      where.status = 'approved'; 
+    } else if (req.user.role !== 'admin') {
+      where.uploaderId = req.user.id;
+    }
+
     const uploads = await db.MangaUpload.findAll({
-      where: req.user.role === 'admin' ? {} : { uploaderId: req.user.id },
+      where,
       include: [{
         model: db.User,
         as: 'uploader',
@@ -132,6 +142,63 @@ export const reviewUpload = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       message: 'Error reviewing upload',
+      error: error.message
+    });
+  }
+};
+
+export const getChapter = async (req, res) => {
+  try {
+    const { mangaId, chapterId } = req.params;
+
+    const chapter = await db.MangaUpload.findOne({
+      where: {
+        id: chapterId,
+        malId: mangaId,
+        status: 'approved'
+      },
+      include: [{
+        model: db.User,
+        as: 'uploader',
+        attributes: ['username']
+      }],
+    });
+
+    if (!chapter) {
+      return res.status(404).json({ message: 'Chapter not found' });
+    }
+
+    res.json(chapter);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error fetching chapter',
+      error: error.message
+    });
+  }
+};
+
+export const getChapterPages = async (req, res) => {
+  try {
+    const { mangaId, chapterId } = req.params;
+
+    const pages = await db.MangaUpload.findAll({
+      where: {
+        id: chapterId,
+        malId: mangaId,
+        status: 'approved'
+      },
+      order: [['fileOrder', 'ASC']],
+      attributes: ['filePath']
+    });
+
+    if (!pages || pages.length === 0) {
+      return res.status(404).json({ message: 'Chapter pages not found' });
+    }
+
+    res.json(pages.map(page => page.filePath));
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error fetching chapter pages',
       error: error.message
     });
   }
