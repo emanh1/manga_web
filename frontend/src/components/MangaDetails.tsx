@@ -39,7 +39,7 @@ const MangaDetails: React.FC = () => {
         />
         <div className="md:col-span-2">
           <h1 className="text-3xl font-bold mb-4">{manga.title}</h1>
-          <p className="text-gray-600 mb-4">{manga.synopsis}</p>
+          <p className="text-gray-600 mb-4">{manga.synopsis || "No synopsis found"}</p>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="font-semibold">Status</h3>
