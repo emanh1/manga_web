@@ -13,7 +13,6 @@ interface Props {
 export default function FileUploadManager({ files, setFiles }: Props) {
   const [previews, setPreviews] = useState<UploadPreview[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -45,6 +44,10 @@ export default function FileUploadManager({ files, setFiles }: Props) {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleRemoveAll = () => {
+    setFiles([]);
+  };
+
   const handleDragStart = (index: number) => {
     setDraggedIndex(index);
   };
@@ -61,7 +64,7 @@ export default function FileUploadManager({ files, setFiles }: Props) {
 
   return (
     <div>
-      <div className="mb-2">
+      <div className="flex items-center justify-between mb-2">
         <button
           type="button"
           className="bg-gray-100 px-3 py-1 rounded hover:bg-gray-200 text-sm"
@@ -69,6 +72,17 @@ export default function FileUploadManager({ files, setFiles }: Props) {
         >
           📤 Add Images
         </button>
+
+        {files.length > 0 && (
+          <button
+            type="button"
+            className="text-sm text-red-600 hover:underline"
+            onClick={handleRemoveAll}
+          >
+            Remove All
+          </button>
+        )}
+
         <input
           type="file"
           accept="image/jpeg,image/png"
