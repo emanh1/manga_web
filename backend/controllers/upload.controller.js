@@ -93,9 +93,15 @@ export const getUploads = async (req, res) => {
 
     if (malId) {
       where.malId = malId;
-      where.status = 'approved'; 
-    } else if (req.user.role !== 'admin') {
-      where.uploaderId = req.user.id;
+      where.status = 'approved';
+    } else if (req.user) {
+      // Only filter by uploader if user is authenticated and not admin
+      if (req.user.role !== 'admin') {
+        where.uploaderId = req.user.id;
+      }
+    } else {
+      // For unauthenticated users, only show approved uploads
+      where.status = 'approved';
     }
 
     const uploads = await db.MangaUpload.findAll({
