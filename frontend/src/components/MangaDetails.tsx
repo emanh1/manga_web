@@ -4,10 +4,12 @@ import { getMangaDetails } from "../api/jikan";
 import type { TMangaDetails, MangaUploadChapter } from "../types/manga";
 import toast from 'react-hot-toast';
 import axiosInstance from "../api/axios";
+import { useAuth } from "../contexts/AuthContext";
 
 const MangaDetails: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [manga, setManga] = useState<TMangaDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [chapters, setChapters] = useState<MangaUploadChapter[]>([]);
@@ -56,12 +58,14 @@ const MangaDetails: React.FC = () => {
         <div className="md:col-span-2">
           <div className="flex justify-between items-start mb-4">
             <h1 className="text-3xl font-bold">{manga.title}</h1>
-            <button
-              onClick={() => navigate(`/upload/${id}`)}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-            >
-              Upload Chapter
-            </button>
+            {user && (
+              <button
+                onClick={() => navigate(`/upload/${id}`)}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+              >
+                Upload Chapter
+              </button>
+            )}
           </div>
 
           <p className="text-gray-600 mb-4">{manga.synopsis || "No synopsis found"}</p>
