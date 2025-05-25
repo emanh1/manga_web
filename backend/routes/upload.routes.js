@@ -5,9 +5,9 @@ import { upload } from '../controllers/upload.controller.js';
 const router = express.Router();
 
 router.post('/upload', verifyToken, upload, uploadMangaChapter);
-router.get('/uploads', verifyToken, getUploads);
+router.get('/uploads', getUploads);
 router.put('/review/:id', verifyToken, isAdmin, reviewUpload);
-router.get('/:mangaId/chapters/:chapterId', verifyToken, getChapter);
-router.get('/:mangaId/chapters/:chapterId/pages', verifyToken, getChapterPages);
+router.get('/:mangaId/chapters/:chapterId', getChapter);
+router.get('/:mangaId/chapters/:chapterId/pages', getChapterPages);
 
 export default router;
