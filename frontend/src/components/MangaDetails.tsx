@@ -1,35 +1,49 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getMangaDetails } from "../api/jikan";
-import type { TMangaDetails, TChapter } from "../types/manga";
+import type { TMangaDetails, MangaUploadChapter } from "../types/manga";
 import toast from 'react-hot-toast';
+import axiosInstance from "../api/axios";
 
 const MangaDetails: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [manga, setManga] = useState<TMangaDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [chapters, setChapters] = useState<TChapter[]>([]);
+  const [chapters, setChapters] = useState<MangaUploadChapter[]>([]);
 
   useEffect(() => {
-    async function fetchManga() {
+    async function fetchData() {
       if (!id) return;
       setLoading(true);
       try {
-        const data = await getMangaDetails(parseInt(id));
-        setManga(data);
-        setChapters([]);
+        const [mangaData, chaptersData] = await Promise.all([
+          getMangaDetails(parseInt(id)),
+          axiosInstance.get<MangaUploadChapter[]>(`/manga/uploads?malId=${id}`)
+        ]);
+
+        setManga(mangaData);
+        setChapters(chaptersData.data);
       } catch (error) {
         console.error(error);
-        toast.error('Failed to fetch manga details');
+        toast.error('Failed to fetch manga data');
       }
       setLoading(false);
     }
-    fetchManga();
+    fetchData();
   }, [id]);
 
   if (loading) return <div>Loading...</div>;
   if (!manga) return <div>Manga not found</div>;
+
+  const chaptersByVolume = chapters.reduce((acc, chapter) => {
+    const volume = chapter.volume ?? 'Other';
+    if (!acc[volume]) {
+      acc[volume] = [];
+    }
+    acc[volume].push(chapter);
+    return acc;
+  }, {} as Record<string | number, MangaUploadChapter[]>);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -75,25 +89,54 @@ const MangaDetails: React.FC = () => {
             {loading ? (
               <div>Loading chapters...</div>
             ) : chapters.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4">
-                {chapters.map((chapter) => (
-                  <a
-                    key={chapter.id}
-                    href={chapter.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-                  >
-                    Chapter {chapter.number}: {chapter.title}
-                    <span className="text-sm text-gray-500 block">
-                      Source: {chapter.source.name}
-                    </span>
-                  </a>
+              <div className="space-y-6">
+                {Object.entries(chaptersByVolume).sort(([a], [b]) => {
+                  if (a === 'Other') return 1;
+                  if (b === 'Other') return -1;
+                  return Number(a) - Number(b);
+                }).map(([volume, volumeChapters]) => (
+                  <div key={volume} className="bg-white rounded-lg shadow p-4">
+                    <h3 className="text-lg font-semibold mb-3">
+                      {volume === 'Other' ? 'Chapters' : `Volume ${volume}`}
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {volumeChapters.sort((a, b) => (a.chapter ?? 0) - (b.chapter ?? 0))
+                        .map((chapter) => (
+                        <div
+                          key={chapter.id}
+                          onClick={() => navigate(`/manga/${id}/chapter/${chapter.id}`)}
+                          className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                        >
+                          <div className="font-medium">
+                            {chapter.chapter ? `Chapter ${chapter.chapter}` : 'Special Chapter'}
+                            {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Uploaded by {chapter.uploader.username}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {new Date(chapter.createdAt).toLocaleDateString()}
+                          </div>
+                          <div className="text-sm">
+                            <span className={`inline-block px-2 py-0.5 rounded ${
+                              chapter.status === 'approved' 
+                                ? 'bg-green-100 text-green-800'
+                                : chapter.status === 'rejected'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {chapter.status.charAt(0).toUpperCase() + chapter.status.slice(1)}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 ))}
               </div>
             ) : (
               <div className="text-gray-600">
-                No reading sources found for this manga.
+                No chapters have been uploaded yet.
               </div>
             )}
           </div>
