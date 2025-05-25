@@ -146,7 +146,6 @@ export default function MangaUpload() {
                   href={`/manga/${malId}`}
                   rel="noopener noreferrer"
                   className="absolute inset-0 flex items-center px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors"
-                  title="View on MyAnimeList"
                 >
                   {selectedManga.title}
                 </a>
