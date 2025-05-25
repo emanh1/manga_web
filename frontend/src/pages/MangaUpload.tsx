@@ -3,12 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import axios from 'axios';
-import { useAuth } from '../contexts/AuthContext';
 import { getMangaDetails } from '../api/jikan';
 import type { TMangaDetails } from '../types/manga';
 import toast from 'react-hot-toast';
 import FileUploadManager from '../components/FileUploadManager';
+import axiosInstance from '../api/axios';
 
 const uploadSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -37,7 +36,6 @@ type UploadFormData = z.infer<typeof uploadSchema>;
 export default function MangaUpload() {
   const { mangaId } = useParams();
   const navigate = useNavigate();
-  const { token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedManga, setSelectedManga] = useState<TMangaDetails | null>(null);
 
@@ -104,11 +102,10 @@ export default function MangaUpload() {
         formData.append('fileOrder', String(index + 1));
       });
 
-      await axios.post('/api/upload', formData, {
+      await axiosInstance.post('/manga/upload', formData, {
         headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
       toast.success('Upload successful');
