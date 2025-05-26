@@ -7,7 +7,7 @@ export const uploadFilesToIPFS = async (files): Promise<string[]> => {
   const results: string[] = [];
   for (const file of files) {
     const stream = fs.createReadStream(file.path);
-    const { cid } = await client.add(file);
+    const { cid } = await client.add({content: stream});
     results.push(cid.toString());
   }
   return results;
