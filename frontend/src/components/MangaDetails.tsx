@@ -28,7 +28,8 @@ const MangaDetails: React.FC = () => {
         setChapters(chaptersData.data);
       } catch (error) {
         console.error(error);
-        toast.error('Failed to fetch manga data');
+        toast.error('No chapters available');
+        setChapters([]);
       } finally {
         setLoading(false);
       }
