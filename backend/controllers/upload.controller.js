@@ -48,6 +48,8 @@ export const uploadMangaChapter = async (req, res) => {
       return res.status(400).json({ message: 'Language is required' });
     }
 
+    const chapterId = db.Sequelize.literal('uuid_generate_v4()');
+
     const uploads = await Promise.all(files.map((file, index) => {
       return db.MangaUpload.create({
         title,
@@ -57,6 +59,7 @@ export const uploadMangaChapter = async (req, res) => {
         chapterTitle: chapterTitle || null,
         language,
         isOneshot: isOneshot === 'true',
+        chapterId,
         fileOrder: index,
         filePath: file.path,
         uploaderId: req.user.id
@@ -114,7 +117,32 @@ export const getUploads = async (req, res) => {
       order: [['volume', 'ASC'], ['chapter', 'ASC'], ['fileOrder', 'ASC']]
     });
 
-    res.json(uploads);
+    const chapters = {};
+    uploads.forEach(upload => {
+      if (!chapters[upload.chapterId]) {
+        chapters[upload.chapterId] = {
+          id: upload.chapterId,
+          title: upload.title,
+          malId: upload.malId,
+          volume: upload.volume,
+          chapter: upload.chapter,
+          chapterTitle: upload.chapterTitle,
+          language: upload.language,
+          isOneshot: upload.isOneshot,
+          status: upload.status,
+          uploader: upload.uploader,
+          createdAt: upload.createdAt,
+          pageCount: 0,
+          firstPagePath: null
+        };
+      }
+      chapters[upload.chapterId].pageCount++;
+      if (!chapters[upload.chapterId].firstPagePath || upload.fileOrder === 0) {
+        chapters[upload.chapterId].firstPagePath = upload.filePath;
+      }
+    });
+
+    res.json(Object.values(chapters));
   } catch (error) {
     res.status(500).json({
       message: 'Error fetching uploads',
@@ -157,9 +185,9 @@ export const getChapter = async (req, res) => {
   try {
     const { mangaId, chapterId } = req.params;
 
-    const chapter = await db.MangaUpload.findOne({
+    const pages = await db.MangaUpload.findAll({
       where: {
-        id: chapterId,
+        chapterId,
         malId: mangaId,
         status: 'approved'
       },
@@ -168,13 +196,30 @@ export const getChapter = async (req, res) => {
         as: 'uploader',
         attributes: ['username']
       }],
+      order: [['fileOrder', 'ASC']]
     });
 
-    if (!chapter) {
+    if (!pages || pages.length === 0) {
       return res.status(404).json({ message: 'Chapter not found' });
     }
 
-    res.json(chapter);
+    const chapterInfo = {
+      id: pages[0].chapterId,
+      title: pages[0].title,
+      chapter: pages[0].chapter,
+      volume: pages[0].volume,
+      chapterTitle: pages[0].chapterTitle,
+      language: pages[0].language,
+      isOneshot: pages[0].isOneshot,
+      uploader: pages[0].uploader,
+      pages: pages.map(page => ({
+        id: page.id,
+        fileOrder: page.fileOrder,
+        filePath: page.filePath
+      }))
+    };
+
+    res.json(chapterInfo);
   } catch (error) {
     res.status(500).json({
       message: 'Error fetching chapter',
