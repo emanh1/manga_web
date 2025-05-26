@@ -40,6 +40,8 @@ export default function MangaUpload() {
   const [selectedManga, setSelectedManga] = useState<TMangaDetails | null>(null);
 
   const [files, setFiles] = useState<File[]>([]);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [failedFiles, setFailedFiles] = useState<{ name: string; error: string }[]>([]);
 
   const {
     register,
@@ -87,8 +89,10 @@ export default function MangaUpload() {
   const onSubmit = async (data: UploadFormData) => {
     try {
       setIsLoading(true);
-      const formData = new FormData();
+      setUploadProgress(0);
+      setFailedFiles([]);
 
+      const formData = new FormData();
       formData.append('title', data.title);
       if (data.malId) formData.append('malId', data.malId);
       if (data.volume) formData.append('volume', data.volume);
@@ -105,16 +109,30 @@ export default function MangaUpload() {
       await axiosInstance.post('/manga/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
+        },
+        onUploadProgress: (progressEvent) => {
+          const progress = progressEvent.loaded / (progressEvent.total ?? 0) * 100;
+          setUploadProgress(Math.round(progress));
         }
       });
 
       toast.success('Upload successful');
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload manga');
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        setFailedFiles(errors.map((err: any) => ({
+          name: err.file,
+          error: err.message
+        })));
+        toast.error('Some files failed to upload. Please check the error list below.');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to upload manga');
+      }
     } finally {
       setIsLoading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -237,12 +255,32 @@ export default function MangaUpload() {
           )}
         </div>
 
+        {failedFiles.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <h3 className="text-red-800 font-medium mb-2">Failed Uploads:</h3>
+            <ul className="list-disc pl-4">
+              {failedFiles.map((file, index) => (
+                <li key={index} className="text-red-600 text-sm">
+                  {file.name}: {file.error}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
+          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:bg-blue-300 relative overflow-hidden"
         >
-          {isLoading ? 'Uploading...' : 'Upload Chapter'}
+          {isLoading ? (
+            <>
+              <div className="absolute inset-0 bg-blue-500" style={{ width: `${uploadProgress}%`, transition: 'width 0.3s ease-in-out' }} />
+              <span className="relative">Uploading... {uploadProgress}%</span>
+            </>
+          ) : (
+            'Upload Chapter'
+          )}
         </button>
       </form>
     </div>
