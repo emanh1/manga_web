@@ -1,16 +1,22 @@
 import { Sequelize } from 'sequelize';
 import UserModel from './user.model.js';
 import MangaUploadModel from './mangaUpload.model.js';
-import dbConfig from "../config/db.config.js";
+import dbConfig from "../config/config.js";
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const env = process.env.NODE_ENV || 'development';
+const config = dbConfig[env];
 
 const sequelize = new Sequelize(
-  dbConfig.DB,
-  dbConfig.USER,
-  dbConfig.PASSWORD,
+  config.database,
+  config.username,
+  config.password,
   {
-    host: dbConfig.HOST,
-    dialect: dbConfig.dialect,
-    port: dbConfig.PORT
+    host: config.host,
+    dialect: config.dialect,
+    port: config.port
   }
 );
 
