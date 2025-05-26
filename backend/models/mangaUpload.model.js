@@ -7,6 +7,10 @@ export default (sequelize) => {
       primaryKey: true,
       autoIncrement: true,
     },
+    chapterId: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+    },
     title: {
       type: DataTypes.STRING,
       allowNull: false,
