@@ -11,6 +11,9 @@ const Reader: React.FC = () => {
   const [pages, setPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 1000;
 
   useEffect(() => {
     const fetchChapter = async () => {
@@ -18,22 +21,28 @@ const Reader: React.FC = () => {
       
       setLoading(true);
       try {
-
         const response = await axiosInstance.get<MangaUploadChapter>(`/manga/${mangaId}/chapters/${chapterId}`);
         setChapter(response.data);
         
         const pagesResponse = await axiosInstance.get<string[]>(`/manga/${mangaId}/chapters/${chapterId}/pages`);
         setPages(pagesResponse.data);
+        setLoading(false);
       } catch (error) {
         console.error('Failed to fetch chapter:', error);
-        toast.error('Failed to load chapter');
-        navigate(`/manga/${mangaId}`);
+        if (retryCount < MAX_RETRIES) {
+          setRetryCount(prev => prev + 1);
+          toast.error(`Failed to load chapter. Retrying (${retryCount + 1}/${MAX_RETRIES})...`);
+          setTimeout(fetchChapter, RETRY_DELAY * (retryCount + 1));
+        } else {
+          toast.error('Failed to load chapter after multiple attempts');
+          navigate(`/manga/${mangaId}`);
+        }
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     fetchChapter();
-  }, [mangaId, chapterId, navigate]);
+  }, [mangaId, chapterId, navigate, retryCount]);
 
   const handleKeyPress = (event: KeyboardEvent) => {
     if (event.key === 'ArrowRight') {
@@ -115,9 +124,17 @@ const Reader: React.FC = () => {
             }}
           >
             <img
-              src={`http://localhost:3000/${pages[currentPage]}`}
+              src={pages[currentPage]}
               alt={`Page ${currentPage + 1}`}
               className="max-h-[80vh] w-auto shadow-lg"
+              onError={(e) => {
+                const img = e.target as HTMLImageElement;
+                if (!img.dataset.retried) {
+                  img.dataset.retried = 'true';
+                  img.src = pages[currentPage].replace('ipfs.io', 'cloudflare-ipfs.com');
+                }
+                toast.error('Failed to load image. Retrying with alternate gateway...');
+              }}
             />
             
             <div className="absolute inset-0 flex justify-between items-center opacity-0 hover:opacity-100 transition-opacity">
