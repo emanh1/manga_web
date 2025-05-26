@@ -7,7 +7,21 @@ import { uploadFilesToIPFS } from '../utils/ipfsClient.ts';
 
 dotenv.config();
 
-//TODO: Use ipfs node
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000;
+
+const retryOperation = async (operation, retries = 0) => {
+  try {
+    return await operation();
+  } catch (error) {
+    if (retries < MAX_RETRIES) {
+      await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retries + 1)));
+      return retryOperation(operation, retries + 1);
+    }
+    throw error;
+  }
+};
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = process.env.UPLOAD_DIR;
@@ -39,6 +53,7 @@ export const upload = multer({
 }).array('files', 100); 
 
 export const uploadMangaChapter = async (req, res) => {
+  const uploadedFiles = [];
   try {
     const { title, volume, chapter, chapterTitle, language, isOneshot, malId } = req.body;
     const files = req.files;
@@ -51,10 +66,30 @@ export const uploadMangaChapter = async (req, res) => {
       return res.status(400).json({ message: 'Language is required' });
     }
 
-    const cids = await uploadFilesToIPFS(files);
+    // Upload files to IPFS with retry mechanism
+    const fileErrors = [];
+    const cids = [];
+    
+    for (const file of files) {
+      try {
+        const cid = await retryOperation(async () => {
+          const [fileCid] = await uploadFilesToIPFS([file]);
+          return fileCid;
+        });
+        cids.push(cid);
+        uploadedFiles.push(file);
+      } catch (error) {
+        fileErrors.push({ file: file.originalname, error: error.message });
+      }
+    }
+
+    if (cids.length === 0) {
+      throw new Error('All files failed to upload to IPFS');
+    }
+
     const chapterId = db.Sequelize.literal('uuid_generate_v4()');
 
-    const uploads = await Promise.all(files.map((file, index) => {
+    const uploads = await Promise.all(cids.map((cid, index) => {
       return db.MangaUpload.create({
         title,
         malId: malId ? parseInt(malId) : null,
@@ -65,25 +100,32 @@ export const uploadMangaChapter = async (req, res) => {
         isOneshot: isOneshot === 'true',
         chapterId,
         fileOrder: index,
-        filePath: cids[index],
+        filePath: cid,
         uploaderId: req.user.id
       });
     }));
 
-    files.forEach((file) => {
+    // Clean up local files
+    uploadedFiles.forEach((file) => {
       fs.unlink(file.path, (err) => {
         if (err) console.error('Failed to delete local file:', file.path, err);
       });
+    });
 
-    });
-    res.status(201).json({
-      message: 'Files uploaded successfully',
+    const response = {
+      message: fileErrors.length > 0 ? 'Upload completed with some errors' : 'Files uploaded successfully',
       uploads
-    });
+    };
+
+    if (fileErrors.length > 0) {
+      response.errors = fileErrors;
+    }
+
+    res.status(201).json(response);
   } catch (error) {
     // Clean up local files if error
-    if (req.files) {
-      req.files.forEach(file => {
+    if (uploadedFiles.length > 0) {
+      uploadedFiles.forEach(file => {
         try {
           fs.unlinkSync(file.path);
         } catch (err) {
