@@ -148,7 +148,7 @@ export const getUploads = async (req, res) => {
       }
       chapters[upload.chapterId].pageCount++;
       if (!chapters[upload.chapterId].firstPagePath || upload.fileOrder === 0) {
-        chapters[upload.chapterId].firstPagePath = upload.filePath;
+        chapters[upload.chapterId].firstPagePath = `https://ipfs.io/ipfs/${upload.filePath}`; //TODO: implement other gateways
       }
     });
 
@@ -225,7 +225,7 @@ export const getChapter = async (req, res) => {
       pages: pages.map(page => ({
         id: page.id,
         fileOrder: page.fileOrder,
-        filePath: page.filePath
+        filePath: `https://ipfs.io/ipfs/${page.filePath}` //TODO: implement other gateways
       }))
     };
 
