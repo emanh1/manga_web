@@ -29,8 +29,9 @@ const MangaDetails: React.FC = () => {
       } catch (error) {
         console.error(error);
         toast.error('Failed to fetch manga data');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
     fetchData();
   }, [id]);
