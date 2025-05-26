@@ -57,7 +57,9 @@ export const uploadMangaChapter = async (req, res) => {
       throw new Error('All files failed to upload to IPFS');
     }
 
-    const chapterId = db.Sequelize.literal('uuid_generate_v4()');
+    const commonChapterId = await db.sequelize.query('SELECT uuid_generate_v4() as uuid',
+      { type: db.Sequelize.QueryTypes.SELECT }
+    ).then(results => results[0].uuid);
 
     const uploads = await Promise.all(cids.map((cid, index) => {
       return db.MangaUpload.create({
@@ -68,7 +70,7 @@ export const uploadMangaChapter = async (req, res) => {
         chapterTitle: chapterTitle || null,
         language,
         isOneshot: isOneshot === 'true',
-        chapterId,
+        chapterId: commonChapterId,  // Use the same chapterId for all files
         fileOrder: index,
         filePath: cid,
         uploaderId: req.user.id
@@ -84,7 +86,15 @@ export const uploadMangaChapter = async (req, res) => {
 
     const response = {
       message: fileErrors.length > 0 ? 'Upload completed with some errors' : 'Files uploaded successfully',
-      uploads
+      uploads: {
+        chapterId: commonChapterId,
+        title,
+        chapter,
+        volume,
+        chapterTitle,
+        pageCount: uploads.length,
+        status: 'pending'
+      }
     };
 
     if (fileErrors.length > 0) {
@@ -139,10 +149,13 @@ export const getUploads = async (req, res) => {
       order: [['volume', 'ASC'], ['chapter', 'ASC'], ['fileOrder', 'ASC']]
     });
 
-    const chapters = {};
+    // Group uploads by chapter
+    const chaptersMap = new Map();
+
     uploads.forEach(upload => {
-      if (!chapters[upload.chapterId]) {
-        chapters[upload.chapterId] = {
+      if (!chaptersMap.has(upload.chapterId)) {
+        // Create a new chapter entry
+        chaptersMap.set(upload.chapterId, {
           id: upload.chapterId,
           title: upload.title,
           malId: upload.malId,
@@ -155,16 +168,24 @@ export const getUploads = async (req, res) => {
           uploader: upload.uploader,
           createdAt: upload.createdAt,
           pageCount: 0,
-          firstPagePath: null
-        };
+          pages: []
+        });
       }
-      chapters[upload.chapterId].pageCount++;
-      if (!chapters[upload.chapterId].firstPagePath || upload.fileOrder === 0) {
-        chapters[upload.chapterId].firstPagePath = `https://ipfs.io/ipfs/${upload.filePath}`; //TODO: implement other gateways
-      }
+
+      const chapter = chaptersMap.get(upload.chapterId);
+      chapter.pageCount++;
+      chapter.pages.push({
+        order: upload.fileOrder,
+        path: `https://ipfs.io/ipfs/${upload.filePath}` //TODO add more gateways dynamically
+      });
     });
 
-    res.json(Object.values(chapters));
+    // Sort pages within each chapter by fileOrder
+    for (const chapter of chaptersMap.values()) {
+      chapter.pages.sort((a, b) => a.order - b.order);
+    }
+
+    res.json(Array.from(chaptersMap.values()));
   } catch (error) {
     res.status(500).json({
       message: 'Error fetching uploads',
@@ -178,22 +199,29 @@ export const reviewUpload = async (req, res) => {
     const { id } = req.params;
     const { status, rejectionReason } = req.body;
 
-    const upload = await db.MangaUpload.findByPk(id);
+    const uploads = await db.MangaUpload.findAll({
+      where: {
+        chapterId: id
+      }
+    });
 
-    if (!upload) {
+    if (!uploads || uploads.length === 0) {
       return res.status(404).json({ message: 'Upload not found' });
     }
 
-    upload.status = status;
-    if (status === 'rejected') {
-      upload.rejectionReason = rejectionReason;
-    }
-
-    await upload.save();
+    // Update all pages in the chapter
+    await Promise.all(uploads.map(upload => {
+      upload.status = status;
+      if (status === 'rejected') {
+        upload.rejectionReason = rejectionReason;
+      }
+      return upload.save();
+    }));
 
     res.json({
-      message: 'Upload reviewed successfully',
-      upload
+      message: 'Chapter reviewed successfully',
+      chapterId: id,
+      status: status
     });
   } catch (error) {
     res.status(500).json({
