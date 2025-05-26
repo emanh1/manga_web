@@ -3,7 +3,10 @@ import path from 'path';
 import fs from 'fs';
 import db from '../models/index.js';
 import dotenv from 'dotenv';
+import { uploadFilesToIPFS } from '../utils/ipfsClient.ts';
+
 dotenv.config();
+
 //TODO: Use ipfs node
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -48,6 +51,7 @@ export const uploadMangaChapter = async (req, res) => {
       return res.status(400).json({ message: 'Language is required' });
     }
 
+    const cids = await uploadFilesToIPFS(files);
     const chapterId = db.Sequelize.literal('uuid_generate_v4()');
 
     const uploads = await Promise.all(files.map((file, index) => {
@@ -61,17 +65,23 @@ export const uploadMangaChapter = async (req, res) => {
         isOneshot: isOneshot === 'true',
         chapterId,
         fileOrder: index,
-        filePath: file.path,
+        filePath: cids[index],
         uploaderId: req.user.id
       });
     }));
 
+    files.forEach((file) => {
+      fs.unlink(file.path, (err) => {
+        if (err) console.error('Failed to delete local file:', file.path, err);
+      });
+
+    });
     res.status(201).json({
       message: 'Files uploaded successfully',
       uploads
     });
   } catch (error) {
-    // Clean up any uploaded files if the database operation fails
+    // Clean up local files if error
     if (req.files) {
       req.files.forEach(file => {
         try {
