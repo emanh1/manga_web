@@ -108,13 +108,13 @@ const MangaDetails: React.FC = () => {
             ) : chapters.length > 0 ? (
               <div className="space-y-6">
                 {Object.entries(chaptersByVolume).sort(([a], [b]) => {
-                  if (a === 'Other') return 1;
-                  if (b === 'Other') return -1;
+                  if (a === 'Other') return -1;
+                  if (b === 'Other') return 1;
                   return Number(a) - Number(b);
                 }).map(([volume, volumeChapters]) => (
                   <div key={volume} className="bg-white rounded-lg shadow p-4">
                     <h3 className="text-lg font-semibold mb-3">
-                      {volume === 'Other' ? 'Chapters' : `Volume ${volume}`}
+                      {volume === 'Other' ? 'No volume' : `Volume ${volume}`}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {volumeChapters.sort((a, b) => (a.chapter ?? 0) - (b.chapter ?? 0))
