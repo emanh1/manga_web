@@ -15,6 +15,10 @@ const MangaDetails: React.FC = () => {
   const [chapters, setChapters] = useState<MangaUploadChapter[]>([]);
 
   useEffect(() => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000;
+    let retryCount = 0;
+
     async function fetchData() {
       if (!mangaId) return;
       setLoading(true);
@@ -26,11 +30,18 @@ const MangaDetails: React.FC = () => {
 
         setManga(mangaData);
         setChapters(chaptersData.data);
+        setLoading(false);
       } catch (error) {
         console.error(error);
-        toast.error('No chapters available');
-        setChapters([]);
-      } finally {
+        if (retryCount < MAX_RETRIES) {
+          retryCount++;
+          toast.error(`Failed to load manga details. Retrying (${retryCount}/${MAX_RETRIES})...`);
+          setTimeout(fetchData, RETRY_DELAY * retryCount);
+        } else {
+          toast.error('Failed to load manga details after multiple attempts');
+          setChapters([]);
+          setManga(null);
+        }
         setLoading(false);
       }
     }
