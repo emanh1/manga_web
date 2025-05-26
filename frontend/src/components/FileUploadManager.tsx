@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 
 interface UploadPreview {
   file: File;
@@ -9,6 +10,9 @@ interface Props {
   files: File[];
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
 }
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
 
 export default function FileUploadManager({ files, setFiles }: Props) {
   const [previews, setPreviews] = useState<UploadPreview[]>([]);
@@ -27,16 +31,50 @@ export default function FileUploadManager({ files, setFiles }: Props) {
     };
   }, [files]);
 
+  const validateFile = (file: File): string | null => {
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      return 'Only JPEG and PNG files are allowed';
+    }
+    if (file.size > MAX_FILE_SIZE) {
+      return `File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`;
+    }
+    return null;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList) return;
 
-    const newFiles = Array.from(fileList).filter(file =>
-      ['image/jpeg', 'image/png'].includes(file.type) &&
-      file.size <= 10 * 1024 * 1024
-    );
+    const newFiles: File[] = [];
+    const errors: string[] = [];
 
-    setFiles(prev => [...prev, ...newFiles]);
+    Array.from(fileList).forEach(file => {
+      const error = validateFile(file);
+      if (error) {
+        errors.push(`${file.name}: ${error}`);
+      } else {
+        newFiles.push(file);
+      }
+    });
+
+    if (errors.length > 0) {
+      toast.error(
+        <div>
+          <p>Some files were not added:</p>
+          <ul className="list-disc pl-4 mt-2">
+            {errors.map((error, i) => (
+              <li key={i} className="text-sm">{error}</li>
+            ))}
+          </ul>
+        </div>
+      );
+    }
+
+    if (newFiles.length > 0) {
+      setFiles(prev => [...prev, ...newFiles]);
+      toast.success(`Added ${newFiles.length} file(s)`);
+    }
+    
     e.target.value = '';
   };
 
