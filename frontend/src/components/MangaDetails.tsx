@@ -7,7 +7,7 @@ import axiosInstance from "../api/axios";
 import { useAuth } from "../contexts/AuthContext";
 
 const MangaDetails: React.FC = () => {
-  const { id } = useParams();
+  const { mangaId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [manga, setManga] = useState<TMangaDetails | null>(null);
@@ -16,12 +16,12 @@ const MangaDetails: React.FC = () => {
 
   useEffect(() => {
     async function fetchData() {
-      if (!id) return;
+      if (!mangaId) return;
       setLoading(true);
       try {
         const [mangaData, chaptersData] = await Promise.all([
-          getMangaDetails(parseInt(id)),
-          axiosInstance.get<MangaUploadChapter[]>(`/manga/uploads?malId=${id}`)
+          getMangaDetails(parseInt(mangaId)),
+          axiosInstance.get<MangaUploadChapter[]>(`/manga/uploads?malId=${mangaId}`)
         ]);
 
         setManga(mangaData);
@@ -35,7 +35,7 @@ const MangaDetails: React.FC = () => {
       }
     }
     fetchData();
-  }, [id]);
+  }, [mangaId]);
 
   if (loading) return <div>Loading...</div>;
   if (!manga) return <div>Manga not found</div>;
@@ -62,7 +62,7 @@ const MangaDetails: React.FC = () => {
             <h1 className="text-3xl font-bold">{manga.title}</h1>
             {user && (
               <button
-                onClick={() => navigate(`/upload/${id}`)}
+                onClick={() => navigate(`/upload/${mangaId}`)}
                 className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
               >
                 Upload Chapter
@@ -110,7 +110,7 @@ const MangaDetails: React.FC = () => {
                         .map((chapter) => (
                         <div
                           key={chapter.id}
-                          onClick={() => navigate(`/manga/${id}/chapter/${chapter.id}`)}
+                          onClick={() => navigate(`/manga/${mangaId}/chapter/${chapter.id}`)}
                           className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                         >
                           <div className="font-medium">

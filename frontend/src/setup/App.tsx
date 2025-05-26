@@ -40,7 +40,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/manga/:id" element={<MangaDetails />} />
+            <Route path="/manga/:mangaId" element={<MangaDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route 
