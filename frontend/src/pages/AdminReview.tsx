@@ -112,7 +112,7 @@ export default function AdminReview() {
             )}
             <div className="mt-4">
               <a
-                href={`http://localhost:3000/${upload.filePath}`}
+                href={`http://ipfs.io/ipfs/${upload.filePath}`} //TODO implement other gateways
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-indigo-600 hover:text-indigo-800"
