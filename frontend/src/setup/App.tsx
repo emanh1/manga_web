@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 import Layout from "../components/Layout";
 import Home from "../pages/Home";
 import MangaDetails from "../components/MangaDetails";
+import Reader from "../components/Reader";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
 import MangaUpload from "../pages/MangaUpload";
@@ -42,6 +43,12 @@ function App() {
             <Route path="/manga/:id" element={<MangaDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route 
+              path="/manga/:mangaId/:chapterId" 
+              element={
+                  <Reader />
+              }
+            />
             <Route 
               path="/upload/:mangaId?" 
               element={
