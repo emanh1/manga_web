@@ -1,13 +1,11 @@
 import express from 'express';
-import { uploadMangaChapter, getUploads, reviewUpload, getChapter, getChapterPages } from '../controllers/upload.controller.js';
+import { uploadMangaChapter, getChapter } from '../controllers/upload.controller.js';
 import { verifyToken, isAdmin } from '../middlewares/auth.js';
+import { uploadValidation } from '../middlewares/validation.js';
 import { upload } from '../controllers/upload.controller.js';
 const router = express.Router();
 
-router.post('/upload', verifyToken, upload, uploadMangaChapter);
-router.get('/uploads', getUploads);
-router.put('/review/:id', verifyToken, isAdmin, reviewUpload);
-router.get('/:mangaId/chapters/:chapterId', getChapter);
-router.get('/:mangaId/chapters/:chapterId/pages', getChapterPages);
+router.post('/upload', verifyToken, uploadValidation, upload, uploadMangaChapter);
+router.get('/:mangaId/:chapterId', getChapter);
 
 export default router;
