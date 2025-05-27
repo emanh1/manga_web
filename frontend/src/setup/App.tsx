@@ -44,7 +44,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route 
-              path="/manga/:mangaId/:chapterId" 
+              path="/manga/:mangaId/chapter/:chapterId" 
               element={
                   <Reader />
               }
