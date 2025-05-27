@@ -314,8 +314,8 @@ export const getChapterPages = async (req, res) => {
 
     const pages = await db.MangaUpload.findAll({
       where: {
-        id: chapterId,
-        malId: mangaId,
+        chapterId: chapterId,
+        malId: parseInt(mangaId),
         status: 'approved'
       },
       order: [['fileOrder', 'ASC']],
@@ -326,7 +326,7 @@ export const getChapterPages = async (req, res) => {
       return res.status(404).json({ message: 'Chapter pages not found' });
     }
 
-    res.json(pages.map(page => page.filePath));
+    res.json(pages.map(page => `https://ipfs.io/ipfs/${page.filePath}`));
   } catch (error) {
     res.status(500).json({
       message: 'Error fetching chapter pages',
