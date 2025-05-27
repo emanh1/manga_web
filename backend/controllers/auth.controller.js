@@ -1,110 +1,38 @@
-import jwt from 'jsonwebtoken';
-import db from '../models/index.js';
-import dotenv from 'dotenv';
-dotenv.config();
+import AuthService from '../services/auth.service.js';
+import AppError from '../utils/appError.js';
 
-export const register = async (req, res) => {
+export const register = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
-
-    const existingUser = await db.User.findOne({
-      where: {
-        [db.Sequelize.Op.or]: [{ username }, { email }]
-      }
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        message: 'Username or email already exists'
-      });
-    }
-
-    const user = await db.User.create({
-      username,
-      email,
-      password
-    });
-
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: '24h'
-    });
+    const result = await AuthService.register(username, email, password);
 
     res.status(201).json({
       message: 'User registered successfully',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
+      ...result
     });
   } catch (error) {
-    res.status(500).json({
-      message: 'Error registering user',
-      error: error.message
-    });
+    next(new AppError(error.message, 400));
   }
 };
 
-export const login = async (req, res) => {
+export const login = async (req, res, next) => {
   try {
     const { username, password } = req.body;
-
-    const user = await db.User.findOne({
-      where: { username }
-    });
-
-    if (!user) {
-      return res.status(401).json({
-        message: 'Invalid username or password'
-      });
-    }
-
-    const isValidPassword = await user.validatePassword(password);
-
-    if (!isValidPassword) {
-      return res.status(401).json({
-        message: 'Invalid username or password'
-      });
-    }
-
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: '24h'
-    });
+    const result = await AuthService.login(username, password);
 
     res.json({
       message: 'Login successful',
-      token,
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
+      ...result
     });
   } catch (error) {
-    res.status(500).json({
-      message: 'Error logging in',
-      error: error.message
-    });
+    next(new AppError(error.message, 401));
   }
 };
 
-export const getMe = async (req, res) => {
+export const getMe = async (req, res, next) => {
   try {
-    const user = req.user;
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role
-    });
+    res.json(AuthService.sanitizeUser(req.user));
   } catch (error) {
-    res.status(500).json({
-      message: 'Error fetching user data',
-      error: error.message
-    });
+    next(new AppError(error.message, 500));
   }
 };
