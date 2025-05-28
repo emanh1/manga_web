@@ -5,6 +5,7 @@ import type { TMangaDetails, TMangaChapter } from "../types/manga";
 import toast from 'react-hot-toast';
 import { useAuth } from "../contexts/AuthContext";
 import { uploadAPI } from "../api/axios";
+import { retryOperation } from "../utils/retry";
 
 const MangaDetails: React.FC = () => {
   const { mangaId } = useParams();
@@ -15,32 +16,25 @@ const MangaDetails: React.FC = () => {
   const [chapters, setChapters] = useState<TMangaChapter[]>([]);
 
   useEffect(() => {
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY = 1000;
-    let retryCount = 0;
-
     async function fetchData() {
       if (!mangaId) return;
       setLoading(true);
       try {
-        const [mangaData, chaptersData] = await Promise.all([
-          getMangaDetails(parseInt(mangaId)),
-          uploadAPI.getChapters(mangaId)
-        ]);
+        const [mangaData, chaptersData] = await retryOperation(
+          async () => Promise.all([
+            getMangaDetails(parseInt(mangaId)),
+            uploadAPI.getChapters(mangaId)
+          ]),
+          3,
+          1000
+        );
         setManga(mangaData);
         setChapters(chaptersData.chapters);
-        setLoading(false);
       } catch (error) {
-        console.error(error);
-        if (retryCount < MAX_RETRIES) {
-          retryCount++;
-          toast.error(`Failed to load manga details. Retrying (${retryCount}/${MAX_RETRIES})...`);
-          setTimeout(fetchData, RETRY_DELAY * retryCount);
-        } else {
-          toast.error('Failed to load manga details after multiple attempts');
-          setChapters([]);
-          setManga(null);
-        }
+        toast.error('Failed to load manga details after multiple attempts');
+        setChapters([]);
+        setManga(null);
+      } finally {
         setLoading(false);
       }
     }
