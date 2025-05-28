@@ -75,4 +75,5 @@ export interface TMangaChapter {
   isOneshot: boolean;
   uploadedAt: string;
   uploader: string;
+  status: 'pending' | 'approved' | 'rejected';
 }
