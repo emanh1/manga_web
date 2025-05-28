@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getMangaDetails } from "../api/jikan";
-import type { TMangaDetails, MangaUploadChapter } from "../types/manga";
+import type { TMangaDetails, TMangaChapter } from "../types/manga";
 import toast from 'react-hot-toast';
-import axiosInstance from "../api/axios";
 import { useAuth } from "../contexts/AuthContext";
+import { uploadAPI } from "../api/axios";
 
 const MangaDetails: React.FC = () => {
   const { mangaId } = useParams();
@@ -12,7 +12,7 @@ const MangaDetails: React.FC = () => {
   const { user } = useAuth();
   const [manga, setManga] = useState<TMangaDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [chapters, setChapters] = useState<MangaUploadChapter[]>([]);
+  const [chapters, setChapters] = useState<TMangaChapter[]>([]);
 
   useEffect(() => {
     const MAX_RETRIES = 3;
@@ -25,11 +25,10 @@ const MangaDetails: React.FC = () => {
       try {
         const [mangaData, chaptersData] = await Promise.all([
           getMangaDetails(parseInt(mangaId)),
-          axiosInstance.get<MangaUploadChapter[]>(`/manga/uploads?malId=${mangaId}`)
+          uploadAPI.getChapters(mangaId)
         ]);
-
         setManga(mangaData);
-        setChapters(chaptersData.data);
+        setChapters(chaptersData.chapters);
         setLoading(false);
       } catch (error) {
         console.error(error);
@@ -58,7 +57,7 @@ const MangaDetails: React.FC = () => {
     }
     acc[volume].push(chapter);
     return acc;
-  }, {} as Record<string | number, MangaUploadChapter[]>);
+  }, {} as Record<string | number, TMangaChapter[]>);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -117,33 +116,22 @@ const MangaDetails: React.FC = () => {
                       {volume === 'Other' ? 'No volume' : `Volume ${volume}`}
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {volumeChapters.sort((a, b) => (a.chapter ?? 0) - (b.chapter ?? 0))
+                      {volumeChapters.sort((a, b) => (a.chapterNumber ?? 0) - (b.chapterNumber ?? 0))
                         .map((chapter) => (
                         <div
-                          key={chapter.id}
-                          onClick={() => navigate(`/manga/${mangaId}/chapter/${chapter.id}`)}
+                          key={chapter.chapterId}
+                          onClick={() => navigate(`/manga/${mangaId}/${chapter.chapterId}`)}
                           className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                         >
                           <div className="font-medium">
-                            {chapter.chapter ? `Chapter ${chapter.chapter}` : 'Special Chapter'}
+                            {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special Chapter'}
                             {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
                           </div>
                           <div className="text-sm text-gray-600">
-                            Uploaded by {chapter.uploader.username}
+                            Uploaded by {chapter.uploader}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {new Date(chapter.createdAt).toLocaleDateString()}
-                          </div>
-                          <div className="text-sm">
-                            <span className={`inline-block px-2 py-0.5 rounded ${
-                              chapter.status === 'approved' 
-                                ? 'bg-green-100 text-green-800'
-                                : chapter.status === 'rejected'
-                                ? 'bg-red-100 text-red-800'
-                                : 'bg-yellow-100 text-yellow-800'
-                            }`}>
-                              {chapter.status.charAt(0).toUpperCase() + chapter.status.slice(1)}
-                            </span>
+                            {new Date(chapter.uploadedAt).toLocaleDateString()}
                           </div>
                         </div>
                       ))}
