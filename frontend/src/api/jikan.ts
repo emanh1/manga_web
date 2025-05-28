@@ -1,6 +1,6 @@
 import axios from "axios";
 import { setupCache } from 'axios-cache-interceptor';
-import type { TManga, TMangaDetails, TMangaRecommendation } from "../types/manga";
+import type { TManga, TMangaRecommendation } from "../types/manga";
 import { axiosWithRetry } from "./axios";
 
 const BASE_URL = "https://api.jikan.moe/v4";
@@ -33,7 +33,7 @@ export const getTopManga = async (limit = 20): Promise<TManga[]> => {
   });
 };
 
-export const getMangaDetails = async (id: number): Promise<TMangaDetails> => {
+export const getMangaDetails = async (id: number): Promise<TManga> => {
   return axiosWithRetry(async () => {
     const response = await api.get(`/manga/${id}/full`);
     return response.data.data;
@@ -47,7 +47,7 @@ export const getMangaRecommendations = async (limit = 20): Promise<TMangaRecomme
   });
 };
 
-export const getRandomManga = async (): Promise<TMangaDetails> => {
+export const getRandomManga = async (): Promise<TManga> => {
   return axiosWithRetry(async () => {
     const response = await api.get('/random/manga');
     return response.data.data;
