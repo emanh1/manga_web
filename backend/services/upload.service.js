@@ -152,6 +152,7 @@ static async getAllPendingChapters() {
     if (!chapters[upload.chapterId]) {
       chapters[upload.chapterId] = {
         chapterId: upload.chapterId,
+        malId: upload.malId,
         title: upload.title,
         chapter: upload.chapter,
         volume: upload.volume,
@@ -186,6 +187,7 @@ static async getAllRejectedChapters() {
     if (!chapters[upload.chapterId]) {
       chapters[upload.chapterId] = {
         chapterId: upload.chapterId,
+        malId: upload.malId,
         title: upload.title,
         chapter: upload.chapter,
         volume: upload.volume,
