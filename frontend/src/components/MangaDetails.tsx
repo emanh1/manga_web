@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getMangaDetails } from "../api/jikan";
-import type { TMangaDetails, TMangaChapter } from "../types/manga";
+import type { TManga, TMangaChapter } from "../types/manga";
 import toast from 'react-hot-toast';
 import { useAuth } from "../contexts/AuthContext";
 import { uploadAPI } from "../api/axios";
@@ -11,7 +11,7 @@ const MangaDetails: React.FC = () => {
   const { mangaId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [manga, setManga] = useState<TMangaDetails | null>(null);
+  const [manga, setManga] = useState<TManga | null>(null);
   const [loading, setLoading] = useState(true);
   const [chapters, setChapters] = useState<TMangaChapter[]>([]);
 
@@ -63,7 +63,12 @@ const MangaDetails: React.FC = () => {
         />
         <div className="md:col-span-2">
           <div className="flex justify-between items-start mb-4">
-            <h1 className="text-3xl font-bold">{manga.title}</h1>
+            <div>
+              <h1 className="text-3xl font-bold">{manga.title}</h1>
+              {manga.title_japanese && (
+                <div className="text-base text-gray-500 mt-1">{manga.title_japanese}</div>
+              )}
+            </div>
             {user && (
               <button
                 onClick={() => navigate(`/upload/${mangaId}`)}
@@ -75,6 +80,112 @@ const MangaDetails: React.FC = () => {
           </div>
 
           <p className="text-gray-600 mb-4">{manga.synopsis || "No synopsis found"}</p>
+
+          {/* --- Added: Manga Info Section --- */}
+          <div className="mb-6 space-y-2">
+            {/* Volumes */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="font-semibold">Volumes:</span>
+              <span className="inline-block text-sm text-gray-700">{manga.volumes ?? 'Unknown'}</span>
+            </div>
+            {/* Publishing Status */}
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="font-semibold">Publishing Status:</span>
+              {manga.status === 'Publishing' ? (
+                <span className="inline-block text-xs bg-green-100 text-green-800 rounded px-2 py-0.5">Publishing</span>
+              ) : manga.status === 'Finished' ? (
+                <span className="inline-block text-xs bg-blue-100 text-blue-800 rounded px-2 py-0.5">Completed</span>
+              ) : manga.status === 'On Hiatus' ? (
+                <span className="inline-block text-xs bg-orange-100 text-orange-800 rounded px-2 py-0.5">Hiatus</span>
+              ) : (
+                <span className="inline-block text-xs bg-gray-100 text-gray-800 rounded px-2 py-0.5">{manga.status}</span>
+              )}
+            </div>
+            {/* Serializations */}
+            {manga.serializations.length > 0 && (
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className="font-semibold">Serialization:</span>
+                {manga.serializations.map((s: import("../types/manga").TMALEntity) => (
+                  <span key={s.mal_id} className="inline-block text-xs bg-yellow-100 text-yellow-800 rounded px-2 py-0.5 mr-1">{s.name}</span>
+                ))}
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="font-semibold">Authors:</span>
+              {manga.authors.length > 0 ? (
+                manga.authors.map((a: import("../types/manga").TMALEntity, i: number) => (
+                  <span key={a.mal_id} className="inline-block text-sm bg-gray-200 rounded px-2 py-0.5 mr-1">
+                    {a.name}{i < manga.authors.length - 1 ? ',' : ''}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500">Unknown</span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="font-semibold">Format:</span>
+              <span className="inline-block text-xs bg-blue-100 text-blue-800 rounded px-2 py-0.5">
+                Manga
+              </span>
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="font-semibold">Demographic:</span>
+              {manga.demographics.length > 0 ? (
+                manga.demographics.map((d: import("../types/manga").TMALEntity) => (
+                  <span key={d.mal_id} className="inline-block text-xs bg-green-100 text-green-800 rounded px-2 py-0.5 mr-1">
+                    {d.name}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500">-</span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="font-semibold">Genres:</span>
+              {manga.genres.length > 0 ? (
+                manga.genres.map((g: import("../types/manga").TMALEntity) => (
+                  <span key={g.mal_id} className="inline-block text-xs bg-gray-200 text-gray-800 rounded px-2 py-0.5 mr-1">
+                    {g.name}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500">-</span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="font-semibold">Explicit Genres:</span>
+              {manga.explicit_genres.length > 0 ? (
+                manga.explicit_genres.map((g: import("../types/manga").TMALEntity) => (
+                  <span key={g.mal_id} className="inline-block text-xs bg-red-200 text-red-800 rounded px-2 py-0.5 mr-1">
+                    {g.name}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500">-</span>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-2 items-center">
+              <span className="font-semibold">Themes:</span>
+              {manga.themes.length > 0 ? (
+                manga.themes.map((t: import("../types/manga").TMALEntity) => (
+                  <span key={t.mal_id} className="inline-block text-xs bg-purple-100 text-purple-800 rounded px-2 py-0.5 mr-1">
+                    {t.name}
+                  </span>
+                ))
+              ) : (
+                <span className="text-gray-500">-</span>
+              )}
+            </div>
+          </div>
+
+          {/* Background */}
+          {manga.background && (
+            <div className="mb-6">
+              <h3 className="font-semibold mb-1">Background</h3>
+              <p className="text-gray-700 whitespace-pre-line">{manga.background}</p>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="font-semibold">Status</h3>
@@ -88,10 +199,7 @@ const MangaDetails: React.FC = () => {
               <h3 className="font-semibold">Score</h3>
               <p>{manga.score || "na"}/10</p>
             </div>
-            <div>
-              <h3 className="font-semibold">Genres</h3>
-              <p>{manga.genres.map(g => g.name).join(", ")}</p>
-            </div>
+            {/* Genres moved to above info section */}
           </div>
 
           <div className="mt-8">
@@ -122,7 +230,7 @@ const MangaDetails: React.FC = () => {
                             {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
                           </div>
                           <div className="text-sm text-gray-600">
-                            Uploaded by {chapter.uploader}
+                            Uploaded by {typeof chapter.uploader === 'object' ? chapter.uploader.username : chapter.uploader}
                           </div>
                           <div className="text-sm text-gray-500">
                             {new Date(chapter.uploadedAt).toLocaleDateString()}
