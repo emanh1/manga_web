@@ -72,6 +72,22 @@ export const uploadAPI = {
   getChapters: async (mangaId: string) => {
     const response = await axiosInstance.get(`/manga/${mangaId}/chapters`);
     return response.data;
+  },
+  getAllPendingChapters: async () => {
+    const response = await axiosInstance.get('/manga/admin/pending');
+    return response.data;
+  },
+  getAllRejectedChapters: async () => {
+    const response = await axiosInstance.get('/manga/admin/rejected');
+    return response.data;
+  },
+  reviewChapter: async (id: number, status: 'approved' | 'rejected', rejectionReason?: string, token?: string) => {
+    const response = await axiosInstance.post(
+      `/manga/admin/review/${id}`,
+      { status, rejectionReason },
+      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+    );
+    return response.data;
   }
 };
 

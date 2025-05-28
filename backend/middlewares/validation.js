@@ -33,6 +33,7 @@ const loginSchema = z.object({
     .min(1, { message: 'Password is required' })
 });
 
+//TODO upload validation
 const uploadSchema = z.object({
   title: z.string()
     .trim()

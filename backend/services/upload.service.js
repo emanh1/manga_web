@@ -139,6 +139,83 @@ class UploadService {
     uploader: chapter.uploader?.username
   }));
 }
+
+static async getAllPendingChapters() {
+  const uploads = await db.MangaUpload.findAll({
+    where: { status: 'pending' },
+    include: [{ model: db.User, as: 'uploader', attributes: ['username'] }],
+    order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
+  });
+  // Group by chapterId
+  const chapters = {};
+  uploads.forEach(upload => {
+    if (!chapters[upload.chapterId]) {
+      chapters[upload.chapterId] = {
+        chapterId: upload.chapterId,
+        title: upload.title,
+        chapter: upload.chapter,
+        volume: upload.volume,
+        chapterTitle: upload.chapterTitle,
+        language: upload.language,
+        isOneshot: upload.isOneshot,
+        status: upload.status,
+        rejectionReason: upload.rejectionReason,
+        uploader: upload.uploader,
+        createdAt: upload.createdAt,
+        pages: []
+      };
+    }
+    chapters[upload.chapterId].pages.push({
+      id: upload.id,
+      fileOrder: upload.fileOrder,
+      filePath: upload.filePath
+    });
+  });
+  return Object.values(chapters);
+}
+
+static async getAllRejectedChapters() {
+  const uploads = await db.MangaUpload.findAll({
+    where: { status: 'rejected' },
+    include: [{ model: db.User, as: 'uploader', attributes: ['username'] }],
+    order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
+  });
+  // Group by chapterId
+  const chapters = {};
+  uploads.forEach(upload => {
+    if (!chapters[upload.chapterId]) {
+      chapters[upload.chapterId] = {
+        chapterId: upload.chapterId,
+        title: upload.title,
+        chapter: upload.chapter,
+        volume: upload.volume,
+        chapterTitle: upload.chapterTitle,
+        language: upload.language,
+        isOneshot: upload.isOneshot,
+        status: upload.status,
+        rejectionReason: upload.rejectionReason,
+        uploader: upload.uploader,
+        createdAt: upload.createdAt,
+        pages: []
+      };
+    }
+    chapters[upload.chapterId].pages.push({
+      id: upload.id,
+      fileOrder: upload.fileOrder,
+      filePath: upload.filePath
+    });
+  });
+  return Object.values(chapters);
+}
+
+static async reviewChapter(id, status, rejectionReason = null) {
+  const upload = await db.MangaUpload.findByPk(id);
+  if (!upload) throw new Error('Upload not found');
+  upload.status = status;
+  upload.rejectionReason = status === 'rejected' ? rejectionReason : null;
+  await upload.save();
+  return upload;
+}
 }
 
 export default UploadService;

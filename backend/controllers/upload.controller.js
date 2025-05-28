@@ -99,3 +99,35 @@ export const getChapters = async (req, res, next) => {
     next(new AppError(error.message, 500));
   }
 };
+
+export const getAllPendingChapters = async (req, res, next) => {
+  try {
+    const chapters = await UploadService.getAllPendingChapters();
+    res.json({ chapters });
+  } catch (error) {
+    next(new AppError(error.message, 500));
+  }
+};
+
+export const getAllRejectedChapters = async (req, res, next) => {
+  try {
+    const chapters = await UploadService.getAllRejectedChapters();
+    res.json({ chapters });
+  } catch (error) {
+    next(new AppError(error.message, 500));
+  }
+};
+
+export const reviewChapter = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status, rejectionReason } = req.body;
+    if (!['approved', 'rejected'].includes(status)) {
+      throw new AppError('Invalid status', 400);
+    }
+    const upload = await UploadService.reviewChapter(id, status, rejectionReason);
+    res.json({ upload });
+  } catch (error) {
+    next(new AppError(error.message, 500));
+  }
+};
