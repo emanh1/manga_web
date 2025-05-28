@@ -96,6 +96,45 @@ class UploadService {
     };
   }
 
+  static async getChapters(mangaId) {
+    const chapters = await db.MangaUpload.findAll({
+      where: {
+        malId: mangaId,
+        status: 'approved'
+      },
+      attributes: [
+        'chapterId',
+        'chapter',
+        'volume',
+        'chapterTitle',
+        'language',
+        'isOneshot',
+        [db.Sequelize.fn('MIN', db.Sequelize.col('MangaUpload.createdAt')), 'uploadedAt']
+      ],
+      include: [{
+        model: db.User,
+        as: 'uploader',
+        attributes: ['username']
+      }],
+      group: ['chapterId', 'chapter', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.id', 'uploader.username'],
+      order: [
+        ['volume', 'ASC'],
+        ['chapter', 'ASC']
+      ]
+    });
+
+  return chapters.map(chapter => ({
+    chapterId: chapter.chapterId,
+    chapterNumber: chapter.chapter,
+    volume: chapter.volume,
+    chapterTitle: chapter.chapterTitle,
+    language: chapter.language,
+    isOneshot: chapter.isOneshot,
+    uploadedAt: chapter.get('uploadedAt'),
+    uploader: chapter.uploader?.username
+  }));
+}
+
   static async retryOperation(operation, retries = 0) {
     try {
       return await operation();

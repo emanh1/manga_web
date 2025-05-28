@@ -89,3 +89,13 @@ export const getChapter = async (req, res, next) => {
     next(new AppError(error.message, error.message.includes('not found') ? 404 : 500));
   }
 };
+
+export const getChapters = async (req, res, next) => {
+  try {
+    const { mangaId } = req.params;
+    const chapters = await UploadService.getChapters(mangaId);
+    res.json({ chapters });
+  } catch (error) {
+    next(new AppError(error.message, 500));
+  }
+};

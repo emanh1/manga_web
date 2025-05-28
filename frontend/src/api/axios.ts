@@ -65,7 +65,11 @@ export const uploadAPI = {
     return response.data;
   },
   getChapter: async (mangaId: string, chapterId: string) => {
-    const response = await axiosInstance.get(`/manga/${mangaId}/chapters/${chapterId}`);
+    const response = await axiosInstance.get(`/manga/${mangaId}/${chapterId}`);
+    return response.data;
+  },
+  getChapters: async (mangaId: string) => {
+    const response = await axiosInstance.get(`/manga/${mangaId}/chapters`);
     return response.data;
   }
 };
