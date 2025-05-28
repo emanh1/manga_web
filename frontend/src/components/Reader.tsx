@@ -3,9 +3,7 @@ import { useParams } from "react-router-dom";
 import { uploadAPI } from "../api/axios";
 import type { TMangaChapter } from "../types/manga";
 import toast from "react-hot-toast";
-
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000;
+import { retryOperation } from "../utils/retry";
 
 const Reader: React.FC = () => {
   const { mangaId, chapterId } = useParams();
@@ -14,46 +12,30 @@ const Reader: React.FC = () => {
   const [pages, setPages] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
 
   const fetchChapter = async () => {
     if (!mangaId || !chapterId) return;
 
     setLoading(true);
     try {
-      const response = await uploadAPI.getChapter(mangaId, chapterId);
-      console.log(response);
+      const response = await retryOperation(
+        () => uploadAPI.getChapter(mangaId, chapterId),
+        3,
+        1000
+      );
       setChapter(response);
       setPages(response.pages);
       setCurrentPage(0);
-      setLoading(false);
     } catch (error) {
-      console.error("Failed to fetch chapter:", error);
-      // if (retryCount < MAX_RETRIES) {
-      //   const nextRetry = retryCount + 1;
-      //   setRetryCount(nextRetry);
-      //   toast.error(`Failed to load chapter. Retrying (${nextRetry}/${MAX_RETRIES})...`);
-      // } else {
-      //   toast.error("Failed to load chapter after multiple attempts");
-      //   navigate(`/manga/${mangaId}`);
-      // }
+      toast.error("Failed to load chapter after multiple attempts");
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    setRetryCount(0);
     fetchChapter();
   }, [mangaId, chapterId]);
-
-  useEffect(() => {
-    if (retryCount > 0 && retryCount <= MAX_RETRIES) {
-      const timer = setTimeout(() => {
-        fetchChapter();
-      }, RETRY_DELAY * retryCount);
-      return () => clearTimeout(timer);
-    }
-  }, [retryCount]);
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
