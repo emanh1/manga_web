@@ -68,12 +68,18 @@ export interface TMangaRecommendation {
 
 export interface TMangaChapter {
   chapterId: string;
-  chapterNumber: number | null;
-  volume: number | null;
+  malId: number | null;
+  title: string;
+  chapter: string | number | null;
+  volume: string | number | null;
+  chapterNumber?: number | null;
   chapterTitle: string | null;
   language: string;
   isOneshot: boolean;
-  uploadedAt: string;
-  uploader: string;
+  uploadedAt?: string;
+  createdAt?: string;
+  uploader: { username: string };
   status: 'pending' | 'approved' | 'rejected';
+  rejectionReason?: string;
+  pages?: { id: number; fileOrder: number; filePath: string }[];
 }
