@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { retryOperation } from '../utils/retry';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
@@ -73,5 +74,9 @@ export const uploadAPI = {
     return response.data;
   }
 };
+
+export async function axiosWithRetry<T>(requestFn: () => Promise<T>, maxRetries = 3, retryDelay = 1000): Promise<T> {
+  return retryOperation(requestFn, maxRetries, retryDelay);
+}
 
 export default axiosInstance;
