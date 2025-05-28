@@ -10,6 +10,7 @@ import AdminReview from '../pages/AdminReview';
 import { Toaster } from 'react-hot-toast';
 import MangaDetails from '../components/MangaDetails';
 import Reader from '../components/Reader';
+import PreviewReader from '../components/PreviewReader';
 
 function App() {
   return (
@@ -25,6 +26,14 @@ function App() {
               path="/manga/:mangaId/:chapterId" 
               element={
                   <Reader />
+              }
+            />
+            <Route 
+              path="/manga/:mangaId/:chapterId/preview" 
+              element={
+                <ProtectedRoute adminOnly>
+                  <PreviewReader />
+                </ProtectedRoute>
               }
             />
             <Route 

@@ -44,9 +44,16 @@ export default function AdminReview() {
     }
   };
 
-  const handleReview = async (id: number, status: 'approved' | 'rejected', reason?: string) => {
+  // Approve/reject all pages in a chapter
+  const handleReviewChapter = async (
+    pageIds: number[],
+    status: 'approved' | 'rejected',
+    reason?: string
+  ) => {
     try {
-      await uploadAPI.reviewChapter(id, status, reason, token || undefined);
+      await Promise.all(
+        pageIds.map((id) => uploadAPI.reviewChapter(id, status, reason, token || undefined))
+      );
       toast.success('Review submitted successfully');
       if (view === 'pending') fetchPendingChapters();
       else fetchRejectedChapters();
@@ -69,7 +76,11 @@ export default function AdminReview() {
 
   const submitRejection = () => {
     if (modalUploadId !== null) {
-      handleReview(modalUploadId, 'rejected', rejectionReason);
+      // Find the upload for the modal
+      const upload = uploads.find(u => u.pages && u.pages.some(p => p.id === modalUploadId));
+      if (upload && upload.pages) {
+        handleReviewChapter(upload.pages.map(p => p.id), 'rejected', rejectionReason);
+      }
       closeRejectModal();
     }
   };
@@ -116,13 +127,13 @@ export default function AdminReview() {
                 {upload.status === 'pending' ? (
                   <>
                     <button
-                      onClick={() => handleReview(upload.pages![0].id, 'approved')}
+                      onClick={() => upload.pages && handleReviewChapter(upload.pages.map(p => p.id), 'approved')}
                       className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => openRejectModal(upload.pages![0].id)}
+                      onClick={() => upload.pages && openRejectModal(upload.pages[0].id)}
                       className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                     >
                       Reject
@@ -146,15 +157,7 @@ export default function AdminReview() {
             )}
             <div className="mt-4 flex gap-4">
               <a
-                href={`http://ipfs.io/ipfs/${upload.pages![0].filePath}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-indigo-600 hover:text-indigo-800"
-              >
-                View First Page
-              </a>
-              <a
-                href={`/manga/${upload.malId || 'unknown'}/${upload.chapterId}`}
+                href={`/manga/${upload.malId}/${upload.chapterId}/preview`}
                 className="text-blue-600 hover:underline"
                 target="_blank"
                 rel="noopener noreferrer"
