@@ -36,7 +36,7 @@ const Reader: React.FC = () => {
         </p>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 relative w-full flex justify-center">
         <img
           src={pages[currentPage].filePath}
           alt={`Page ${currentPage + 1}`}
@@ -53,6 +53,18 @@ const Reader: React.FC = () => {
             }
           }}
         />
+        <button
+          className="absolute top-0 left-0 h-full w-1/2 cursor-pointer z-10"
+          style={{ background: "rgba(0,0,0,0)", borderTopLeftRadius: '0.5rem', borderBottomLeftRadius: '0.5rem' }}
+          onClick={previousPage}
+          disabled={currentPage === 0}
+        />
+        <button
+          className="absolute top-0 right-0 h-full w-1/2 cursor-pointer z-10"
+          style={{ background: "rgba(0,0,0,0)", borderTopRightRadius: '0.5rem', borderBottomRightRadius: '0.5rem' }}
+          onClick={nextPage}
+          disabled={currentPage === pages.length - 1}
+        />
       </div>
 
       <div className="w-full max-w-md flex flex-col items-center gap-4">
@@ -67,23 +79,6 @@ const Reader: React.FC = () => {
         <div className="flex justify-between w-full text-sm text-gray-600">
           <span>Page {currentPage + 1}</span>
           <span>{pages.length} pages</span>
-        </div>
-
-        <div className="flex gap-4 mt-2">
-          <button
-            onClick={previousPage}
-            disabled={currentPage === 0}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            onClick={nextPage}
-            disabled={currentPage === pages.length - 1}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
-          >
-            Next
-          </button>
         </div>
       </div>
     </div>
