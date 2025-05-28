@@ -131,3 +131,13 @@ export const reviewChapter = async (req, res, next) => {
     next(new AppError(error.message, 500));
   }
 };
+
+export const previewChapter = async (req, res, next) => {
+  try {
+    const { mangaId, chapterId } = req.params;
+    const chapterInfo = await UploadService.getChapterInfoPreview(mangaId, chapterId);
+    res.json(chapterInfo);
+  } catch (error) {
+    next(new AppError(error.message, 500));
+  }
+}

@@ -88,6 +88,10 @@ export const uploadAPI = {
       token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
     );
     return response.data;
+  },
+  previewChapter: async (mangaId: string, chapterId: string) => {
+    const response = await axiosInstance.get(`/manga/${mangaId}/${chapterId}/preview`);
+    return response.data;
   }
 };
 

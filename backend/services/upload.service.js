@@ -1,6 +1,7 @@
 import db from '../models/index.js';
 import { uploadFilesToIPFS } from '../utils/ipfsClient.ts';
 import { retryOperation } from '../utils/retry.js';
+import { Op } from 'sequelize';
 
 class UploadService {
   static MAX_RETRIES = 3;
@@ -71,6 +72,44 @@ class UploadService {
         chapterId,
         malId: mangaId,
         status: 'approved'
+      },
+      include: [{
+        model: db.User,
+        as: 'uploader',
+        attributes: ['username']
+      }],
+      order: [['fileOrder', 'ASC']]
+    });
+
+    if (!pages || pages.length === 0) {
+      throw new Error('Chapter not found');
+    }
+
+    return {
+      id: pages[0].chapterId,
+      title: pages[0].title,
+      chapter: pages[0].chapter,
+      volume: pages[0].volume,
+      chapterTitle: pages[0].chapterTitle,
+      language: pages[0].language,
+      isOneshot: pages[0].isOneshot,
+      uploader: pages[0].uploader,
+      pages: pages.map(page => ({
+        id: page.id,
+        fileOrder: page.fileOrder,
+        filePath: `https://ipfs.io/ipfs/${page.filePath}`
+      }))
+    };
+  }
+
+  static async getChapterInfoPreview(mangaId, chapterId) {
+    const pages = await db.MangaUpload.findAll({
+      where: {
+        chapterId,
+        malId: mangaId,
+        status: {
+          [Op.in]: ['pending', 'rejected']
+        }
       },
       include: [{
         model: db.User,
