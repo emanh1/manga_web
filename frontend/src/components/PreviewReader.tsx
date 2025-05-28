@@ -1,62 +1,24 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
 import { uploadAPI } from "../api/axios";
-import type { TMangaChapter } from "../types/manga";
-import toast from "react-hot-toast";
-import { retryOperation } from "../utils/retry";
+import { useChapterReader } from "../utils/useChapterReader";
+import toast from 'react-hot-toast';
 
 const PreviewReader: React.FC = () => {
   const { mangaId, chapterId } = useParams();
-
-  const [chapter, setChapter] = useState<TMangaChapter | null>(null);
-  const [pages, setPages] = useState<any[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const fetchPreview = async () => {
-    if (!mangaId || !chapterId) return;
-    setLoading(true);
-    try {
-      const response = await retryOperation(
-        () => uploadAPI.previewChapter(mangaId, chapterId),
-        3,
-        1000
-      );
-      setChapter(response);
-      setPages(response.pages);
-      setCurrentPage(0);
-    } catch (error) {
-      toast.error("Failed to load preview after multiple attempts");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchPreview();
-    // eslint-disable-next-line
-  }, [mangaId, chapterId]);
-
-  const handleKeyPress = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key === "ArrowRight") nextPage();
-      else if (event.key === "ArrowLeft") previousPage();
-    },
-    [pages.length, currentPage]
-  );
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [handleKeyPress]);
-
-  const nextPage = () => {
-    if (currentPage < pages.length - 1) setCurrentPage(currentPage + 1);
-  };
-
-  const previousPage = () => {
-    if (currentPage > 0) setCurrentPage(currentPage - 1);
-  };
+  const {
+    chapter,
+    pages,
+    currentPage,
+    setCurrentPage,
+    loading,
+    nextPage,
+    previousPage,
+  } = useChapterReader({
+    mangaId,
+    chapterId,
+    fetchChapterFn: uploadAPI.previewChapter,
+  });
 
   if (loading || !chapter) return <div className="p-4">Loading preview...</div>;
 

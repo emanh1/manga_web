@@ -1,62 +1,24 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React from "react";
 import { useParams } from "react-router-dom";
 import { uploadAPI } from "../api/axios";
-import type { TMangaChapter } from "../types/manga";
-import toast from "react-hot-toast";
-import { retryOperation } from "../utils/retry";
+import { useChapterReader } from "../utils/useChapterReader";
+import toast from 'react-hot-toast';
 
 const Reader: React.FC = () => {
   const { mangaId, chapterId } = useParams();
-
-  const [chapter, setChapter] = useState<TMangaChapter | null>(null);
-  const [pages, setPages] = useState<string[]>([]);
-  const [currentPage, setCurrentPage] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  const fetchChapter = async () => {
-    if (!mangaId || !chapterId) return;
-
-    setLoading(true);
-    try {
-      const response = await retryOperation(
-        () => uploadAPI.getChapter(mangaId, chapterId),
-        3,
-        1000
-      );
-      setChapter(response);
-      setPages(response.pages);
-      setCurrentPage(0);
-    } catch (error) {
-      toast.error("Failed to load chapter after multiple attempts");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchChapter();
-  }, [mangaId, chapterId]);
-
-  const handleKeyPress = useCallback(
-    (event: KeyboardEvent) => {
-      if (event.key === "ArrowRight") nextPage();
-      else if (event.key === "ArrowLeft") previousPage();
-    },
-    [pages.length, currentPage]
-  );
-
-  useEffect(() => {
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [handleKeyPress]);
-
-  const nextPage = () => {
-    if (currentPage < pages.length - 1) setCurrentPage(currentPage + 1);
-  };
-
-  const previousPage = () => {
-    if (currentPage > 0) setCurrentPage(currentPage - 1);
-  };
+  const {
+    chapter,
+    pages,
+    currentPage,
+    setCurrentPage,
+    loading,
+    nextPage,
+    previousPage,
+  } = useChapterReader({
+    mangaId,
+    chapterId,
+    fetchChapterFn: uploadAPI.getChapter,
+  });
 
   if (loading || !chapter) return <div className="p-4">Loading...</div>;
 
@@ -70,7 +32,7 @@ const Reader: React.FC = () => {
         </h1>
         <p className="text-sm text-gray-500">
           Uploaded by {chapter.uploader.username} ·{" "}
-          {new Date(chapter.uploadedAt).toLocaleDateString()}
+          {chapter.uploadedAt ? new Date(chapter.uploadedAt).toLocaleDateString() : ""}
         </p>
       </div>
 
