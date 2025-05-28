@@ -66,31 +66,13 @@ export interface TMangaRecommendation {
   };
 }
 
-export type TChapter = {
-  id: string;
-  number: number;
-  title: string;
-  url: string;
-  source: TChapterSource;
-};
-
-export type TChapterSource = {
-  id: string;
-  name: string;
-  url: string;
-};
-
-export interface MangaUploadChapter {
-  id: number;
-  title: string;
-  chapter: number | null;
+export interface TMangaChapter {
+  chapterId: string;
+  chapterNumber: number | null;
   volume: number | null;
   chapterTitle: string | null;
-  filePath: string;
   language: string;
-  uploader: {
-    username: string;
-  };
-  createdAt: string;
-  status: 'pending' | 'approved' | 'rejected';
+  isOneshot: boolean;
+  uploadedAt: string;
+  uploader: string;
 }
