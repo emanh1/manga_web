@@ -1,5 +1,6 @@
 import db from '../models/index.js';
 import { uploadFilesToIPFS } from '../utils/ipfsClient.ts';
+import { retryOperation } from '../utils/retry.js';
 
 class UploadService {
   static MAX_RETRIES = 3;
@@ -12,10 +13,14 @@ class UploadService {
 
     for (const file of files) {
       try {
-        const cid = await this.retryOperation(async () => {
-          const [fileCid] = await uploadFilesToIPFS([file]);
-          return fileCid;
-        });
+        const cid = await retryOperation(
+          async () => {
+            const [fileCid] = await uploadFilesToIPFS([file]);
+            return fileCid;
+          },
+          this.MAX_RETRIES,
+          this.RETRY_DELAY
+        );
         cids.push(cid);
         uploadedFiles.push(file);
       } catch (error) {
@@ -134,18 +139,6 @@ class UploadService {
     uploader: chapter.uploader?.username
   }));
 }
-
-  static async retryOperation(operation, retries = 0) {
-    try {
-      return await operation();
-    } catch (error) {
-      if (retries < this.MAX_RETRIES) {
-        await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY * (retries + 1)));
-        return this.retryOperation(operation, retries + 1);
-      }
-      throw error;
-    }
-  }
 }
 
 export default UploadService;
