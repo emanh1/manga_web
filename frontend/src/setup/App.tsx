@@ -61,6 +61,10 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route 
+              path="/profile/:uuid" 
+              element={<Profile />} 
+            />
           </Routes>
         </Layout>
         <Toaster 
