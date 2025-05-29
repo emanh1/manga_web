@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
+import { useParams } from 'react-router-dom';
 
 const Profile: React.FC = () => {
   const { user, token } = useAuth();
+  const { uuid } = useParams();
+  const isOwnProfile = !uuid || uuid === (user as any)?.uuid;
   const [profile, setProfile] = useState<any>(null);
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
@@ -12,14 +15,15 @@ const Profile: React.FC = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    axiosInstance.get('/user/profile')
+    const endpoint = uuid ? `/user/profile/${uuid}` : '/user/profile';
+    axiosInstance.get(endpoint, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {
         setProfile(res.data);
         setBio(res.data.bio || '');
         setAvatarUrl(res.data.avatarUrl || '');
         setDisplayName(res.data.username || '');
       });
-  }, [token]);
+  }, [token, uuid]);
 
   const handleSave = async () => {
     try {
@@ -36,12 +40,12 @@ const Profile: React.FC = () => {
 
   return (
     <div className="profile-container">
-      <h2>My Profile</h2>
+      <h2>{isOwnProfile ? 'My Profile' : `${profile.username}'s Profile`}</h2>
       {message && <div>{message}</div>}
       <img src={avatarUrl || '/default-avatar.png'} alt="avatar" style={{ width: 100, height: 100, borderRadius: '50%' }} />
       <div>
         <label>Display Name:</label>
-        {editing ? (
+        {editing && isOwnProfile ? (
           <input value={displayName} onChange={e => setDisplayName(e.target.value)} />
         ) : (
           <span>{profile.username}</span>
@@ -49,7 +53,7 @@ const Profile: React.FC = () => {
       </div>
       <div>
         <label>Bio:</label>
-        {editing ? (
+        {editing && isOwnProfile ? (
           <textarea value={bio} onChange={e => setBio(e.target.value)} />
         ) : (
           <span>{profile.bio}</span>
@@ -57,17 +61,17 @@ const Profile: React.FC = () => {
       </div>
       <div>
         <label>Avatar URL:</label>
-        {editing ? (
+        {editing && isOwnProfile ? (
           <input value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} />
         ) : (
           <span>{profile.avatarUrl}</span>
         )}
       </div>
-      {editing ? (
+      {isOwnProfile && (editing ? (
         <button onClick={handleSave}>Save</button>
       ) : (
         <button onClick={() => setEditing(true)}>Edit Profile</button>
-      )}
+      ))}
     </div>
   );
 };
