@@ -2,14 +2,12 @@ import { DataTypes } from 'sequelize';
 
 export default (sequelize) => {
   const MangaUpload = sequelize.define('MangaUpload', {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
     chapterId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+      allowNull: false,
+      unique: true,
     },
     title: {
       type: DataTypes.STRING,
@@ -56,11 +54,11 @@ export default (sequelize) => {
       allowNull: true,
     },
     uploaderId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.UUID,
       allowNull: false,
       references: {
         model: 'Users',
-        key: 'id',
+        key: 'uuid',
       },
     },
   });
