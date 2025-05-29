@@ -3,7 +3,12 @@ import AppError from '../utils/appError.js';
 
 export const getProfile = async (req, res, next) => {
   try {
-    const user = await db.User.findByPk(req.user.id);
+    let user;
+    if (req.params.uuid) {
+      user = await db.User.findOne({ where: { uuid: req.params.uuid } });
+    } else {
+      user = await db.User.findByPk(req.user.uuid);
+    }
     if (!user) return next(new AppError('User not found', 404));
     res.json({
       uuid: user.uuid,
@@ -21,7 +26,7 @@ export const getProfile = async (req, res, next) => {
 export const updateProfile = async (req, res, next) => {
   try {
     const { bio, avatarUrl, displayName } = req.body;
-    const user = await db.User.findByPk(req.user.id);
+    const user = await db.User.findByPk(req.user.uuid);
     if (!user) return next(new AppError('User not found', 404));
     if (bio !== undefined) user.bio = bio;
     if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
