@@ -160,7 +160,7 @@ class UploadService {
         as: 'uploader',
         attributes: ['username']
       }],
-      group: ['chapterId', 'chapter', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.id', 'uploader.username'],
+      group: ['chapterId', 'chapter', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.uuid', 'uploader.username'],
       order: [
         ['volume', 'ASC'],
         ['chapter', 'ASC']
