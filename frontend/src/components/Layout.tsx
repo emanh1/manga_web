@@ -37,10 +37,10 @@ const Layout: React.FC<Props> = ({ children }) => {
               {user ? (
                 <>
                   <Link
-                    to="/profile"
+                    to={`/profile/${user.uuid}`}
                     className="text-gray-600 hover:text-purple-600 transition"
                   >
-                    Welcome, {user.username}
+                    My Profile
                   </Link>
                   <button
                     onClick={handleLogout}
