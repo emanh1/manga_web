@@ -6,7 +6,7 @@ export const getProfile = async (req, res, next) => {
     const user = await db.User.findByPk(req.user.id);
     if (!user) return next(new AppError('User not found', 404));
     res.json({
-      id: user.id,
+      uuid: user.uuid,
       username: user.username,
       email: user.email,
       bio: user.bio,
@@ -30,7 +30,7 @@ export const updateProfile = async (req, res, next) => {
     res.json({
       message: 'Profile updated',
       user: {
-        id: user.id,
+        uuid: user.uuid,
         username: user.username,
         email: user.email,
         bio: user.bio,
