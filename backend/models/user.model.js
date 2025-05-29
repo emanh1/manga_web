@@ -32,6 +32,14 @@ export default (sequelize) => {
       type: DataTypes.ENUM('user', 'admin'),
       defaultValue: 'user',
     },
+    bio: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
+    avatarUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
   }, {
     hooks: {
       beforeCreate: async (user) => {

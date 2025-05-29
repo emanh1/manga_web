@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import db from './models/index.js';
 import authRoutes from './routes/auth.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
+import userRoutes from './routes/user.routes.js';
 import { errorHandler, notFound } from './middlewares/error.js';
 
 dotenv.config();
@@ -22,6 +23,7 @@ app.use('/uploads', express.static('uploads'));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/manga', uploadRoutes);
+app.use('/api/user', userRoutes);
 
 // Error Handling
 app.use(notFound);

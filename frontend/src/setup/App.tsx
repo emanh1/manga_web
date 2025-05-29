@@ -11,6 +11,7 @@ import { Toaster } from 'react-hot-toast';
 import MangaDetails from '../components/MangaDetails';
 import Reader from '../components/Reader';
 import PreviewReader from '../components/PreviewReader';
+import Profile from '../pages/Profile';
 
 function App() {
   return (
@@ -51,6 +52,14 @@ function App() {
                   <AdminReview />
                 </ProtectedRoute>
               } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
             />
           </Routes>
         </Layout>

@@ -36,7 +36,12 @@ const Layout: React.FC<Props> = ({ children }) => {
             <div className="flex items-center space-x-4">
               {user ? (
                 <>
-                  <span className="text-gray-600">Welcome, {user.username}!</span>
+                  <Link
+                    to="/profile"
+                    className="text-gray-600 hover:text-purple-600 transition"
+                  >
+                    Welcome, {user.username}
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="text-gray-600 hover:text-purple-600 transition"
