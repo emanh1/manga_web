@@ -230,7 +230,14 @@ const MangaDetails: React.FC = () => {
                             {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
                           </div>
                           <div className="text-sm text-gray-600">
-                            Uploaded by {typeof chapter.uploader === 'object' ? chapter.uploader.username : chapter.uploader}
+                            Uploaded by 
+                              <Link
+                                to={`/profile/${chapter.uploader.uuid}`}
+                                className="text-purple-600 hover:underline"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                {chapter.uploader.username}
+                              </Link>
                           </div>
                           <div className="text-sm text-gray-500">
                             {new Date(chapter.uploadedAt).toLocaleDateString()}
