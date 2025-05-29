@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { getMangaDetails } from "../api/jikan";
-import type { TManga, TMangaChapter } from "../types/manga";
+import type { TManga, TMangaChapter, TMALEntity } from "../types/manga";
 import toast from 'react-hot-toast';
 import { useAuth } from "../contexts/AuthContext";
 import { uploadAPI } from "../api/axios";
@@ -105,7 +105,7 @@ const MangaDetails: React.FC = () => {
             {manga.serializations.length > 0 && (
               <div className="flex flex-wrap gap-2 items-center">
                 <span className="font-semibold">Serialization:</span>
-                {manga.serializations.map((s: import("../types/manga").TMALEntity) => (
+                {manga.serializations.map((s: TMALEntity) => (
                   <span key={s.mal_id} className="inline-block text-xs bg-yellow-100 text-yellow-800 rounded px-2 py-0.5 mr-1">{s.name}</span>
                 ))}
               </div>
@@ -113,7 +113,7 @@ const MangaDetails: React.FC = () => {
             <div className="flex flex-wrap gap-2 items-center">
               <span className="font-semibold">Authors:</span>
               {manga.authors.length > 0 ? (
-                manga.authors.map((a: import("../types/manga").TMALEntity, i: number) => (
+                manga.authors.map((a: TMALEntity, i: number) => (
                   <span key={a.mal_id} className="inline-block text-sm bg-gray-200 rounded px-2 py-0.5 mr-1">
                     {a.name}{i < manga.authors.length - 1 ? ',' : ''}
                   </span>
@@ -131,7 +131,7 @@ const MangaDetails: React.FC = () => {
             <div className="flex flex-wrap gap-2 items-center">
               <span className="font-semibold">Demographic:</span>
               {manga.demographics.length > 0 ? (
-                manga.demographics.map((d: import("../types/manga").TMALEntity) => (
+                manga.demographics.map((d: TMALEntity) => (
                   <span key={d.mal_id} className="inline-block text-xs bg-green-100 text-green-800 rounded px-2 py-0.5 mr-1">
                     {d.name}
                   </span>
@@ -143,7 +143,7 @@ const MangaDetails: React.FC = () => {
             <div className="flex flex-wrap gap-2 items-center">
               <span className="font-semibold">Genres:</span>
               {manga.genres.length > 0 ? (
-                manga.genres.map((g: import("../types/manga").TMALEntity) => (
+                manga.genres.map((g: TMALEntity) => (
                   <span key={g.mal_id} className="inline-block text-xs bg-gray-200 text-gray-800 rounded px-2 py-0.5 mr-1">
                     {g.name}
                   </span>
@@ -155,7 +155,7 @@ const MangaDetails: React.FC = () => {
             <div className="flex flex-wrap gap-2 items-center">
               <span className="font-semibold">Explicit Genres:</span>
               {manga.explicit_genres.length > 0 ? (
-                manga.explicit_genres.map((g: import("../types/manga").TMALEntity) => (
+                manga.explicit_genres.map((g: TMALEntity) => (
                   <span key={g.mal_id} className="inline-block text-xs bg-red-200 text-red-800 rounded px-2 py-0.5 mr-1">
                     {g.name}
                   </span>
@@ -167,7 +167,7 @@ const MangaDetails: React.FC = () => {
             <div className="flex flex-wrap gap-2 items-center">
               <span className="font-semibold">Themes:</span>
               {manga.themes.length > 0 ? (
-                manga.themes.map((t: import("../types/manga").TMALEntity) => (
+                manga.themes.map((t: TMALEntity) => (
                   <span key={t.mal_id} className="inline-block text-xs bg-purple-100 text-purple-800 rounded px-2 py-0.5 mr-1">
                     {t.name}
                   </span>
