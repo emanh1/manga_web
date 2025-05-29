@@ -3,10 +3,12 @@ import bcrypt from 'bcrypt';
 
 export default (sequelize) => {
   const User = sequelize.define('User', {
-    id: {
-      type: DataTypes.INTEGER,
+    uuid: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      autoIncrement: true,
+      allowNull: false,
+      unique: true,
     },
     username: {
       type: DataTypes.STRING,
