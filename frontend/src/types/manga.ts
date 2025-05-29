@@ -1,3 +1,5 @@
+import type { User } from "./user";
+
 export interface TMALEntity {
   mal_id: number;
   type: string;
@@ -70,7 +72,7 @@ export interface TMangaChapter {
   isOneshot: boolean;
   uploadedAt: string;
   createdAt: string;
-  uploader: { username: string };
+  uploader: User; 
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
   pages: { id: number; fileOrder: number; filePath: string }[];
