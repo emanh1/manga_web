@@ -2,6 +2,7 @@ import db from '../models/index.js';
 import { uploadFilesToIPFS } from '../utils/ipfsClient.ts';
 import { retryOperation } from '../utils/retry.js';
 import { Op } from 'sequelize';
+import { v4 as uuidv4 } from 'uuid';
 
 class UploadService {
   static MAX_RETRIES = 3;
@@ -39,24 +40,23 @@ class UploadService {
   static async createMangaUpload(uploadData, files, userId) {
     const { title, malId, volume, chapter, chapterTitle, language, isOneshot } = uploadData;
 
-    const commonChapterId = await db.sequelize.query('SELECT uuid_generate_v4() as uuid',
-      { type: db.Sequelize.QueryTypes.SELECT }
-    ).then(results => results[0].uuid);
+    const commonChapterId = uuidv4();
 
     const uploads = await Promise.all(files.cids.map((cid, index) => {
-      return db.MangaUpload.create({
+      const uploadDataObj = {
         title,
         malId: malId ? parseInt(malId) : null,
         volume: volume ? parseInt(volume) : null,
         chapter: chapter ? parseInt(chapter) : null,
         chapterTitle: chapterTitle || null,
         language,
-        isOneshot: isOneshot === 'true',
-        chapterId: commonChapterId,
+        isOneshot: Boolean(isOneshot),
         fileOrder: index,
         filePath: cid,
-        uploaderId: userId
-      });
+        uploaderId: userId,
+        chapterId: commonChapterId
+      };
+      return db.MangaUpload.create(uploadDataObj);
     }));
 
     return {
