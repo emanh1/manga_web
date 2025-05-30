@@ -97,7 +97,7 @@ class UploadService {
       pages: pages.map(page => ({
         id: page.id,
         fileOrder: page.fileOrder,
-        filePath: `https://ipfs.io/ipfs/${page.filePath}`
+        filePath: page.filePath
       }))
     };
   }
@@ -135,7 +135,7 @@ class UploadService {
       pages: pages.map(page => ({
         id: page.id,
         fileOrder: page.fileOrder,
-        filePath: `https://ipfs.io/ipfs/${page.filePath}`
+        filePath: page.filePath
       }))
     };
   }
