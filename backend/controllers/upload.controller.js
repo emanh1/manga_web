@@ -50,7 +50,7 @@ export const uploadMangaChapter = async (req, res, next) => {
     uploadedFiles.push(...ipfsResult.uploadedFiles);
 
     // Create manga upload records
-    const result = await UploadService.createMangaUpload(req.body, ipfsResult, req.user.id);
+    const result = await UploadService.createMangaUpload(req.body, ipfsResult, req.user.uuid);
 
     // Clean up local files
     uploadedFiles.forEach(file => {
@@ -74,6 +74,14 @@ export const uploadMangaChapter = async (req, res, next) => {
         } catch (err) {
           console.error('Error deleting file:', err);
         }
+      });
+    }
+    // Enhanced error reporting for Sequelize validation errors
+    if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Database validation error',
+        errors: error.errors?.map(e => ({ message: e.message, path: e.path })) || error.message
       });
     }
     next(new AppError(error.message, 500));
