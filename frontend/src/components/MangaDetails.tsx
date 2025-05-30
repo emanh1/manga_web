@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getMangaDetails } from "../api/jikan";
 import type { TManga, TMangaChapter, TMALEntity } from "../types/manga";
@@ -6,6 +6,64 @@ import toast from 'react-hot-toast';
 import { useAuth } from "../contexts/AuthContext";
 import { uploadAPI } from "../api/axios";
 import { retryOperation } from "../utils/retry";
+
+function sortVolumes(a: [string | number, TMangaChapter[]], b: [string | number, TMangaChapter[]]) {
+  if (a[0] === 'Other') return -1;
+  if (b[0] === 'Other') return 1;
+  return Number(b[0]) - Number(a[0]);
+}
+
+function sortChaptersDesc(a: TMangaChapter, b: TMangaChapter) {
+  return (b.chapterNumber ?? 0) - (a.chapterNumber ?? 0);
+}
+
+const ChapterListItem: React.FC<{
+  chapter: TMangaChapter;
+  mangaId: string | undefined;
+  navigate: ReturnType<typeof useNavigate>;
+}> = ({ chapter, mangaId, navigate }) => (
+  <li
+    key={chapter.chapterId}
+    onClick={() => navigate(`/manga/${mangaId}/${chapter.chapterId}`)}
+    className="py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer"
+  >
+    <div className="font-medium">
+      {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special Chapter'}
+      {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
+    </div>
+    <div className="text-sm text-gray-600">
+      Uploaded by{' '}
+      <Link
+        to={`/profile/${chapter.uploader.uuid}`}
+        className="text-purple-600 hover:underline"
+        onClick={e => e.stopPropagation()}
+      >
+        {chapter.uploader.username}
+      </Link>
+    </div>
+    <div className="text-sm text-gray-500">
+      {new Date(chapter.uploadedAt).toLocaleDateString()}
+    </div>
+  </li>
+);
+
+const VolumeSection: React.FC<{
+  volume: string | number;
+  chapters: TMangaChapter[];
+  mangaId: string | undefined;
+  navigate: ReturnType<typeof useNavigate>;
+}> = ({ volume, chapters, mangaId, navigate }) => (
+  <div className="bg-white rounded-lg shadow p-4">
+    <h3 className="text-lg font-semibold mb-3">
+      {volume === 'Other' ? 'No volume' : `Volume ${volume}`}
+    </h3>
+    <ul className="divide-y divide-gray-200">
+      {chapters.sort(sortChaptersDesc).map((chapter) => (
+        <ChapterListItem key={chapter.chapterId} chapter={chapter} mangaId={mangaId} navigate={navigate} />
+      ))}
+    </ul>
+  </div>
+);
 
 const MangaDetails: React.FC = () => {
   const { mangaId } = useParams();
@@ -41,17 +99,16 @@ const MangaDetails: React.FC = () => {
     fetchData();
   }, [mangaId]);
 
+  const chaptersByVolume = useMemo(() =>
+    chapters.reduce((acc, chapter) => {
+      const volume = chapter.volume ?? 'Other';
+      if (!acc[volume]) acc[volume] = [];
+      acc[volume].push(chapter);
+      return acc;
+    }, {} as Record<string | number, TMangaChapter[]>), [chapters]);
+
   if (loading) return <div>Loading...</div>;
   if (!manga) return <div>Manga not found</div>;
-
-  const chaptersByVolume = chapters.reduce((acc, chapter) => {
-    const volume = chapter.volume ?? 'Other';
-    if (!acc[volume]) {
-      acc[volume] = [];
-    }
-    acc[volume].push(chapter);
-    return acc;
-  }, {} as Record<string | number, TMangaChapter[]>);
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -208,45 +265,17 @@ const MangaDetails: React.FC = () => {
               <div>Loading chapters...</div>
             ) : chapters.length > 0 ? (
               <div className="space-y-6">
-                {Object.entries(chaptersByVolume).sort(([a], [b]) => {
-                  if (a === 'Other') return -1;
-                  if (b === 'Other') return 1;
-                  return Number(a) - Number(b);
-                }).map(([volume, volumeChapters]) => (
-                  <div key={volume} className="bg-white rounded-lg shadow p-4">
-                    <h3 className="text-lg font-semibold mb-3">
-                      {volume === 'Other' ? 'No volume' : `Volume ${volume}`}
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {volumeChapters.sort((a, b) => (a.chapterNumber ?? 0) - (b.chapterNumber ?? 0))
-                        .map((chapter) => (
-                        <div
-                          key={chapter.chapterId}
-                          onClick={() => navigate(`/manga/${mangaId}/${chapter.chapterId}`)}
-                          className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                        >
-                          <div className="font-medium">
-                            {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special Chapter'}
-                            {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            Uploaded by 
-                              <Link
-                                to={`/profile/${chapter.uploader.uuid}`}
-                                className="text-purple-600 hover:underline"
-                                onClick={e => e.stopPropagation()}
-                              >
-                                {chapter.uploader.username}
-                              </Link>
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {new Date(chapter.uploadedAt).toLocaleDateString()}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                {Object.entries(chaptersByVolume)
+                  .sort(sortVolumes)
+                  .map(([volume, volumeChapters]) => (
+                    <VolumeSection
+                      key={volume}
+                      volume={volume}
+                      chapters={volumeChapters}
+                      mangaId={mangaId}
+                      navigate={navigate}
+                    />
+                  ))}
               </div>
             ) : (
               <div className="text-gray-600">
