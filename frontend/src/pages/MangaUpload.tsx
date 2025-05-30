@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { getMangaDetails } from '../api/jikan';
-import type { TMangaDetails } from '../types/manga';
+import type { TManga } from '../types/manga';
 import toast from 'react-hot-toast';
 import FileUploadManager from '../components/FileUploadManager';
 import axiosInstance from '../api/axios';
@@ -37,7 +37,7 @@ export default function MangaUpload() {
   const { mangaId } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedManga, setSelectedManga] = useState<TMangaDetails | null>(null);
+  const [selectedManga, setSelectedManga] = useState<TManga | null>(null);
 
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
