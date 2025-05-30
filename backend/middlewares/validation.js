@@ -33,14 +33,19 @@ const loginSchema = z.object({
     .min(1, { message: 'Password is required' })
 });
 
-//TODO upload validation
 const uploadSchema = z.object({
   title: z.string()
     .trim()
     .min(1, { message: 'Title is required' }),
+  malId: z.string()
+    .min(1, { message: 'MAL ID is required' }),
+  volume: z.string().optional(),
+  chapter: z.string().optional(),
+  chapterTitle: z.string().optional(),
   language: z.string()
     .trim()
-    .min(1, { message: 'Language is required' })
+    .min(1, { message: 'Language is required' }),
+  isOneshot: z.union([z.boolean(), z.string()]).transform(val => val === true || val === 'true'),
 });
 
 export const registerValidation = validateRequest(registerSchema);

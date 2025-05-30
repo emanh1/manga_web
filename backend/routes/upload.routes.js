@@ -4,9 +4,7 @@ import { verifyToken, isAdmin } from '../middlewares/auth.js';
 import { uploadValidation } from '../middlewares/validation.js';
 const router = express.Router();
 
-// TODO upload validation
-// router.post('/upload', verifyToken, uploadValidation, upload, uploadMangaChapter);
-router.post('/upload', verifyToken, upload, uploadMangaChapter);
+router.post('/upload', verifyToken, upload, uploadValidation, uploadMangaChapter);
 router.get('/admin/pending', verifyToken, isAdmin, getAllPendingChapters);
 router.get('/admin/rejected', verifyToken, isAdmin, getAllRejectedChapters);
 router.post('/admin/review/:id', verifyToken, isAdmin, reviewChapter);
