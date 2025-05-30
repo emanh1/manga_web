@@ -15,8 +15,8 @@ const Profile: React.FC = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    const endpoint = uuid ? `/user/profile/${uuid}` : '/user/profile';
-    axiosInstance.get(endpoint, { headers: { Authorization: `Bearer ${token}` } })
+    const endpoint = `/user/profile/${uuid}`;
+    axiosInstance.get(endpoint)
       .then(res => {
         setProfile(res.data);
         setBio(res.data.bio || '');
@@ -27,7 +27,7 @@ const Profile: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      const res = await axiosInstance.put('/user/profile', { bio, avatarUrl, displayName });
+      const res = await axiosInstance.put(`/user/profile/${uuid}`, { bio, avatarUrl, displayName });
       setProfile(res.data.user);
       setEditing(false);
       setMessage('Profile updated!');

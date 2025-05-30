@@ -19,7 +19,7 @@ class AuthService {
       password
     });
 
-    const token = this.generateToken(user.id);
+    const token = this.generateToken(user.uuid);
 
     return {
       token,
@@ -36,7 +36,7 @@ class AuthService {
       throw new Error('Invalid username or password');
     }
 
-    const token = this.generateToken(user.id);
+    const token = this.generateToken(user.uuid);
 
     return {
       token,
@@ -45,7 +45,7 @@ class AuthService {
   }
 
   static generateToken(userId) {
-    return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    return jwt.sign({ uuid: userId }, process.env.JWT_SECRET, {
       expiresIn: '24h'
     });
   }
