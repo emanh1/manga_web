@@ -76,7 +76,7 @@ class UploadService {
       include: [{
         model: db.User,
         as: 'uploader',
-        attributes: ['username']
+        attributes: ['username', 'uuid']
       }],
       order: [['fileOrder', 'ASC']]
     });
@@ -114,7 +114,7 @@ class UploadService {
       include: [{
         model: db.User,
         as: 'uploader',
-        attributes: ['username']
+        attributes: ['username', 'uuid']
       }],
       order: [['fileOrder', 'ASC']]
     });
@@ -158,7 +158,7 @@ class UploadService {
       include: [{
         model: db.User,
         as: 'uploader',
-        attributes: ['username']
+        attributes: ['username', 'uuid']
       }],
       group: ['chapterId', 'chapter', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.uuid', 'uploader.username'],
       order: [
@@ -175,14 +175,14 @@ class UploadService {
     language: chapter.language,
     isOneshot: chapter.isOneshot,
     uploadedAt: chapter.get('uploadedAt'),
-    uploader: chapter.uploader?.username
+    uploader: chapter.uploader ? { username: chapter.uploader.username, uuid: chapter.uploader.uuid } : null
   }));
 }
 
 static async getAllPendingChapters() {
   const uploads = await db.MangaUpload.findAll({
     where: { status: 'pending' },
-    include: [{ model: db.User, as: 'uploader', attributes: ['username'] }],
+    include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
     order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
   });
   // Group by chapterId
@@ -217,7 +217,7 @@ static async getAllPendingChapters() {
 static async getAllRejectedChapters() {
   const uploads = await db.MangaUpload.findAll({
     where: { status: 'rejected' },
-    include: [{ model: db.User, as: 'uploader', attributes: ['username'] }],
+    include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
     order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
   });
   // Group by chapterId
