@@ -82,6 +82,15 @@ const Login: React.FC = () => {
             </button>
           </div>
         </form>
+        <div className="flex justify-end mt-2">
+          <button
+            type="button"
+            className="text-sm text-purple-600 hover:underline focus:outline-none"
+            onClick={() => navigate('/forgot-password')}
+          >
+            Forgot Password?
+          </button>
+        </div>
       </div>
     </div>
   );

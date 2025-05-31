@@ -12,6 +12,9 @@ import MangaDetails from '../components/MangaDetails';
 import Reader from '../components/Reader';
 import PreviewReader from '../components/PreviewReader';
 import Profile from '../pages/Profile';
+import ForgotPassword from '../pages/ForgotPassword';
+import ResetPassword from '../pages/ResetPassword';
+import Settings from '../pages/Settings';
 
 function App() {
   return (
@@ -64,6 +67,16 @@ function App() {
             <Route 
               path="/profile/:uuid" 
               element={<Profile />} 
+            />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              }
             />
           </Routes>
         </Layout>
