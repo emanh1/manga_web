@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axiosInstance from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import YourUploadsTab from '../components/YourUploadsTab';
 
 interface ProfileData {
@@ -14,6 +14,8 @@ interface ProfileData {
 const Profile: React.FC = () => {
   const { user, token } = useAuth();
   const { uuid } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
   const isOwnProfile = !uuid || uuid === (user as any)?.uuid;
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [bio, setBio] = useState('');
@@ -21,7 +23,7 @@ const Profile: React.FC = () => {
   const [username, setUsername] = useState('');
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState('');
-  const [activeTab, setActiveTab] = useState<'profile' | 'uploads'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'uploads'>(tabParam === 'uploads' ? 'uploads' : 'profile');
 
   useEffect(() => {
     const endpoint = `/user/profile/${uuid}`;
@@ -33,6 +35,10 @@ const Profile: React.FC = () => {
         setUsername(res.data.username || '');
       });
   }, [token, uuid]);
+
+  useEffect(() => {
+    setSearchParams(tabParam === activeTab ? searchParams : { ...Object.fromEntries(searchParams.entries()), tab: activeTab });
+  }, [activeTab]);
 
   const handleSave = async () => {
     try {

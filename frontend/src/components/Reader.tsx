@@ -1,16 +1,19 @@
 import React from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { uploadAPI } from "../api/axios";
 import { useChapterReader } from "../utils/useChapterReader";
 import toast from 'react-hot-toast';
 import { useIPFSGateway } from '../contexts/IPFSGatewayContext';
 import GatewaySelector from "./GatewaySelector";
 import { FaCog } from 'react-icons/fa';
-import type { TMangaChapter, TMangaPage } from "../types/manga";
+import type { TMangaChapter } from "../types/manga";
 
 const Reader: React.FC = () => {
   const { mangaId, chapterId } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const pageParam = searchParams.get("page");
+  const initialPage = pageParam ? Math.max(0, parseInt(pageParam)) : 0;
   const {
     chapter,
     pages,
@@ -43,6 +46,25 @@ const Reader: React.FC = () => {
     const idx = chapterList.findIndex((c) => c.chapterId === chapterId);
     setChapterIndex(idx);
   }, [chapterList, chapterId]);
+
+  React.useEffect(() => {
+    if (currentPage !== initialPage) {
+      setSearchParams((prev) => {
+        const params = new URLSearchParams(prev);
+        if (currentPage > 0) {
+          params.set("page", String(currentPage));
+        } else {
+          params.delete("page");
+        }
+        return params;
+      });
+    }
+  }, [currentPage, setSearchParams]);
+  React.useEffect(() => {
+    if (currentPage !== initialPage && pages.length > 0) {
+      setCurrentPage(initialPage < pages.length ? initialPage : 0);
+    }
+  }, [pages.length]);
 
   if (loading || !chapter) return <div className="p-4">Loading...</div>;
 

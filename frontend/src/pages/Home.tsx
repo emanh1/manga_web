@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { searchManga, getRandomManga } from "../api/jikan";
 import type { TManga } from "../types/manga";
 import SearchBar from "../components/SearchBar";
@@ -10,10 +10,16 @@ import { useDebounce } from "../hooks/useDebounce";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
-  const [query, setQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+  const [query, setQuery] = useState(initialQuery);
   const [mangaList, setMangaList] = useState<TManga[]>([]);
   const [loading, setLoading] = useState(false);
   const debouncedQuery = useDebounce(query, 500);
+
+  useEffect(() => {
+    setSearchParams(query ? { q: query } : {});
+  }, [query, setSearchParams]);
 
   useEffect(() => {
     const performSearch = async () => {
