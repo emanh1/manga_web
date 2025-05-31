@@ -38,7 +38,7 @@ class UploadService {
   }
 
   static async createMangaUpload(uploadData, files, userId) {
-    const { title, malId, volume, chapter, chapterTitle, language, isOneshot } = uploadData;
+    const { title, malId, volume, chapterNumber, chapterTitle, language, isOneshot } = uploadData;
 
     const commonChapterId = uuidv4();
 
@@ -47,7 +47,7 @@ class UploadService {
         title,
         malId: malId ? parseInt(malId) : null,
         volume: volume ? parseInt(volume) : null,
-        chapter: chapter ? parseInt(chapter) : null,
+        chapterNumber: chapterNumber ? parseInt(chapterNumber) : null,
         chapterTitle: chapterTitle || null,
         language,
         isOneshot: Boolean(isOneshot),
@@ -88,7 +88,7 @@ class UploadService {
     return {
       id: pages[0].chapterId,
       title: pages[0].title,
-      chapter: pages[0].chapter,
+      chapterNumber: pages[0].chapterNumber,
       volume: pages[0].volume,
       chapterTitle: pages[0].chapterTitle,
       language: pages[0].language,
@@ -126,7 +126,7 @@ class UploadService {
     return {
       id: pages[0].chapterId,
       title: pages[0].title,
-      chapter: pages[0].chapter,
+      chapterNumber: pages[0].chapterNumber,
       volume: pages[0].volume,
       chapterTitle: pages[0].chapterTitle,
       language: pages[0].language,
@@ -148,7 +148,7 @@ class UploadService {
       },
       attributes: [
         'chapterId',
-        'chapter',
+        'chapterNumber',
         'volume',
         'chapterTitle',
         'language',
@@ -160,16 +160,16 @@ class UploadService {
         as: 'uploader',
         attributes: ['username', 'uuid']
       }],
-      group: ['chapterId', 'chapter', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.uuid', 'uploader.username'],
+      group: ['chapterId', 'chapterNumber', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.uuid', 'uploader.username'],
       order: [
         ['volume', 'ASC'],
-        ['chapter', 'ASC']
+        ['chapterNumber', 'ASC']
       ]
     });
 
   return chapters.map(chapter => ({
     chapterId: chapter.chapterId,
-    chapterNumber: chapter.chapter,
+    chapterNumber: chapter.chapterNumber,
     volume: chapter.volume,
     chapterTitle: chapter.chapterTitle,
     language: chapter.language,
@@ -193,7 +193,7 @@ static async getAllPendingChapters() {
         chapterId: upload.chapterId,
         malId: upload.malId,
         title: upload.title,
-        chapter: upload.chapter,
+        chapterNumber: upload.chapterNumber,
         volume: upload.volume,
         chapterTitle: upload.chapterTitle,
         language: upload.language,
@@ -228,7 +228,7 @@ static async getAllRejectedChapters() {
         chapterId: upload.chapterId,
         malId: upload.malId,
         title: upload.title,
-        chapter: upload.chapter,
+        chapterNumber: upload.chapterNumber,
         volume: upload.volume,
         chapterTitle: upload.chapterTitle,
         language: upload.language,

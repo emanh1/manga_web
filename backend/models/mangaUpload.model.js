@@ -32,7 +32,7 @@ export default (sequelize) => {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    chapter: {
+    chapterNumber: {
       type: DataTypes.INTEGER,
       allowNull: true,
     },

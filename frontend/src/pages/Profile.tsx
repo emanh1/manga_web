@@ -3,14 +3,21 @@ import axiosInstance from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams } from 'react-router-dom';
 
+interface ProfileData {
+  uuid: string;
+  username: string;
+  bio: string;
+  avatarUrl: string;
+}
+
 const Profile: React.FC = () => {
   const { user, token } = useAuth();
   const { uuid } = useParams();
   const isOwnProfile = !uuid || uuid === (user as any)?.uuid;
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ProfileData | null>(null);
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [displayName, setDisplayName] = useState('');
+  const [username, setUsername] = useState('');
   const [editing, setEditing] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -21,17 +28,17 @@ const Profile: React.FC = () => {
         setProfile(res.data);
         setBio(res.data.bio || '');
         setAvatarUrl(res.data.avatarUrl || '');
-        setDisplayName(res.data.username || '');
+        setUsername(res.data.username || '');
       });
   }, [token, uuid]);
 
   const handleSave = async () => {
     try {
-      const res = await axiosInstance.put(`/user/profile/${uuid}`, { bio, avatarUrl, displayName });
+      const res = await axiosInstance.put(`/user/profile/${uuid}`, { bio, avatarUrl, username });
       setProfile(res.data.user);
       setEditing(false);
       setMessage('Profile updated!');
-    } catch (e) {
+    } catch {
       setMessage('Failed to update profile.');
     }
   };
@@ -46,7 +53,7 @@ const Profile: React.FC = () => {
       <div>
         <label>Display Name:</label>
         {editing && isOwnProfile ? (
-          <input value={displayName} onChange={e => setDisplayName(e.target.value)} />
+          <input value={username} onChange={e => setUsername(e.target.value)} />
         ) : (
           <span>{profile.username}</span>
         )}

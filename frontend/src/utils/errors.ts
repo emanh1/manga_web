@@ -2,7 +2,7 @@ import { AxiosError } from 'axios';
 
 export interface ApiError extends Error {
   status?: number;
-  data?: any;
+  data?: unknown; // Replace 'any' type with a more specific type
 }
 
 export function createApiError(error: unknown): ApiError {

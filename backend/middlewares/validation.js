@@ -37,10 +37,9 @@ const uploadSchema = z.object({
   title: z.string()
     .trim()
     .min(1, { message: 'Title is required' }),
-  malId: z.string()
-    .min(1, { message: 'MAL ID is required' }),
-  volume: z.string().optional(),
-  chapter: z.string().optional(),
+  malId: z.preprocess((val) => Number(val), z.number().min(1, { message: 'MAL ID is required' })),
+  volume: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().optional()),
+  chapterNumber: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().optional()),
   chapterTitle: z.string().optional(),
   language: z.string()
     .trim()

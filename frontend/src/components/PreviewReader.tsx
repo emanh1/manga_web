@@ -3,6 +3,16 @@ import { useParams } from "react-router-dom";
 import { uploadAPI } from "../api/axios";
 import { useChapterReader } from "../utils/useChapterReader";
 import toast from 'react-hot-toast';
+import { useIPFSGateway } from '../contexts/IPFSGatewayContext';
+import { LoadingSpinner } from './LoadingSpinner';
+import { FaSyncAlt } from 'react-icons/fa';
+import type { TMangaPage } from "../types/manga";
+
+const PRESET_GATEWAYS = [
+  "https://ipfs.io/ipfs/",
+  "https://cloudflare-ipfs.com/ipfs/",
+  "https://infura-ipfs.io/ipfs/"
+];
 
 const PreviewReader: React.FC = () => {
   const { mangaId, chapterId } = useParams();
@@ -19,6 +29,11 @@ const PreviewReader: React.FC = () => {
     chapterId,
     fetchChapterFn: uploadAPI.previewChapter,
   });
+  const [imgLoading, setImgLoading] = React.useState(true);
+  const [imgKey, setImgKey] = React.useState(0);
+  const [imgFailed, setImgFailed] = React.useState(false);
+  const [retryIndex, setRetryIndex] = React.useState(0);
+  const { gateway } = useIPFSGateway();
 
   if (loading || !chapter) return <div className="p-4">Loading preview...</div>;
 
@@ -36,22 +51,49 @@ const PreviewReader: React.FC = () => {
       </div>
 
       <div className="mb-6 relative w-full flex justify-center">
+        {imgLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-20">
+            <LoadingSpinner />
+          </div>
+        )}
         <img
-          src={pages[currentPage].filePath}
+          key={imgKey + '-' + retryIndex}
+          src={(imgFailed && retryIndex < PRESET_GATEWAYS.length && gateway !== PRESET_GATEWAYS[retryIndex])
+            ? PRESET_GATEWAYS[retryIndex] + pages[currentPage].filePath
+            : gateway + pages[currentPage].filePath}
           alt={`Page ${currentPage + 1}`}
           className="max-h-[80vh] w-auto shadow-lg rounded"
-          onError={(e) => {
-            const img = e.currentTarget;
-            const alreadyRetried = img.dataset.retried === "true";
-            if (!alreadyRetried) {
-              img.dataset.retried = "true";
-              img.src = img.src.replace("ipfs.io", "cloudflare-ipfs.com");
+          onLoad={() => {
+            setImgLoading(false);
+            setImgFailed(false);
+            setRetryIndex(0);
+          }}
+          onError={() => {
+            if (retryIndex < PRESET_GATEWAYS.length - 1) {
+              setRetryIndex(retryIndex + 1);
+              setImgLoading(true);
               toast.error("Failed to load image. Retrying with alternate gateway...");
             } else {
-              toast.error("Image failed to load on both gateways");
+              toast.error("Image failed to load on all gateways");
+              setImgLoading(false);
+              setImgFailed(true);
             }
           }}
         />
+        {imgFailed && (
+          <button
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white bg-opacity-90 rounded-full p-3 shadow z-30 border border-gray-300 hover:bg-gray-100 flex items-center justify-center"
+            onClick={() => {
+              setImgLoading(true);
+              setImgKey((k) => k + 1);
+              setImgFailed(false);
+              setRetryIndex(0);
+            }}
+            title="Reload Image"
+          >
+            <FaSyncAlt className="text-xl text-gray-700" />
+          </button>
+        )}
         <button
           className="absolute top-0 left-0 h-full w-1/2 cursor-pointer z-10"
           style={{ background: "rgba(0,0,0,0)", borderTopLeftRadius: '0.5rem', borderBottomLeftRadius: '0.5rem' }}
@@ -85,3 +127,4 @@ const PreviewReader: React.FC = () => {
 };
 
 export default PreviewReader;
+

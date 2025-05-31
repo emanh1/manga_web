@@ -9,11 +9,12 @@ import toast from 'react-hot-toast';
 import FileUploadManager from '../components/FileUploadManager';
 import axiosInstance from '../api/axios';
 
+// --- Schema and Types ---
 const uploadSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  malId: z.string(),
-  volume: z.string().optional(),
-  chapter: z.string().optional(),
+  malId: z.preprocess((val) => Number(val), z.number()),
+  volume: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().optional()),
+  chapterNumber: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().optional()),
   chapterTitle: z.string().optional(),
   language: z.string().min(1, 'Language is required'),
   isOneshot: z.boolean(),
@@ -31,14 +32,13 @@ const uploadSchema = z.object({
     ),
 });
 
-type UploadFormData = z.infer<typeof uploadSchema>;
+type UploadFormData = z.input<typeof uploadSchema>;
 
 export default function MangaUpload() {
   const { mangaId } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [selectedManga, setSelectedManga] = useState<TManga | null>(null);
-
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [failedFiles, setFailedFiles] = useState<{ name: string; error: string }[]>([]);
@@ -53,20 +53,30 @@ export default function MangaUpload() {
     resolver: zodResolver(uploadSchema),
     defaultValues: {
       isOneshot: false,
+      malId: mangaId ? Number(mangaId) : undefined,
+      volume: undefined,
+      chapterNumber: undefined,
+      chapterTitle: '',
+      language: '',
+      files: undefined as unknown as FileList,
+      title: '',
     },
   });
 
   const malId = watch('malId');
   const isOneshot = watch('isOneshot');
+
+  // Set malId from URL param if present
   useEffect(() => {
     if (mangaId) {
-      setValue('malId', mangaId);
+      setValue('malId', Number(mangaId));
     }
   }, [mangaId, setValue]);
 
+  // Fetch manga details when malId changes
   useEffect(() => {
     if (malId) {
-      const fetchMangaDetails = async () => {
+      (async () => {
         try {
           const details = await getMangaDetails(Number(malId));
           setSelectedManga(details);
@@ -75,17 +85,18 @@ export default function MangaUpload() {
           console.error('Error fetching manga details:', error);
           toast.error('Failed to fetch manga details');
         }
-      };
-      fetchMangaDetails();
+      })();
     }
   }, [malId, setValue]);
 
+  // Sync files state with form
   useEffect(() => {
     const fileList = new DataTransfer();
     files.forEach(file => fileList.items.add(file));
     setValue('files', fileList.files, { shouldValidate: true });
   }, [files, setValue]);
 
+  // --- Form Submission ---
   const onSubmit = async (data: UploadFormData) => {
     try {
       setIsLoading(true);
@@ -94,13 +105,12 @@ export default function MangaUpload() {
 
       const formData = new FormData();
       formData.append('title', data.title);
-      if (data.malId) formData.append('malId', data.malId);
-      if (data.volume) formData.append('volume', data.volume);
-      if (data.chapter) formData.append('chapter', data.chapter);
+      if (data.malId) formData.append('malId', String(data.malId));
+      if (data.volume !== undefined) formData.append('volume', String(data.volume));
+      if (data.chapterNumber !== undefined) formData.append('chapterNumber', String(data.chapterNumber));
       if (data.chapterTitle) formData.append('chapterTitle', data.chapterTitle);
       formData.append('isOneshot', String(data.isOneshot));
       formData.append('language', data.language);
-
       Array.from(data.files).forEach((file, index) => {
         formData.append('files', file);
         formData.append('fileOrder', String(index + 1));
@@ -136,6 +146,7 @@ export default function MangaUpload() {
     }
   };
 
+  // --- Render ---
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Upload Manga</h1>
@@ -178,9 +189,6 @@ export default function MangaUpload() {
               className="w-full px-3 py-2 border rounded-lg"
               placeholder="Search manga title..."
               {...register('title')}
-              onChange={(e) => {
-                register('title').onChange(e);
-              }}
             />
             {errors.title && (
               <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
@@ -220,7 +228,7 @@ export default function MangaUpload() {
             <input
               type="number"
               className="w-full px-3 py-2 border rounded-lg disabled:opacity-20"
-              {...register('chapter')}
+              {...register('chapterNumber')}
               disabled={isOneshot}
             />
           </div>

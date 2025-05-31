@@ -88,7 +88,7 @@ const MangaDetails: React.FC = () => {
         );
         setManga(mangaData);
         setChapters(chaptersData.chapters);
-      } catch (error) {
+      } catch {
         toast.error('Failed to load manga details after multiple attempts');
         setChapters([]);
         setManga(null);
