@@ -43,42 +43,94 @@ const Profile: React.FC = () => {
     }
   };
 
-  if (!profile) return <div>Loading...</div>;
+  if (!profile) return <div className="p-8 flex justify-center items-center min-h-[40vh]">Loading...</div>;
 
   return (
-    <div className="profile-container">
-      <h2>{isOwnProfile ? 'My Profile' : `${profile.username}'s Profile`}</h2>
-      {message && <div>{message}</div>}
-      <img src={avatarUrl || '/default-avatar.png'} alt="avatar" style={{ width: 100, height: 100, borderRadius: '50%' }} />
-      <div>
-        <label>Display Name:</label>
-        {editing && isOwnProfile ? (
-          <input value={username} onChange={e => setUsername(e.target.value)} />
-        ) : (
-          <span>{profile.username}</span>
+    <div className="flex justify-center items-center min-h-[60vh] bg-gray-50">
+      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md flex flex-col items-center">
+        <div className="relative mb-4">
+          <img
+            src={avatarUrl || '/default-avatar.png'}
+            alt="avatar"
+            className="w-28 h-28 rounded-full object-cover border-4 border-purple-200 shadow"
+          />
+          {isOwnProfile && editing && (
+            <div className="absolute bottom-0 right-0 bg-purple-600 text-white text-xs px-2 py-1 rounded shadow">
+              Editing
+            </div>
+          )}
+        </div>
+        <h2 className="text-2xl font-bold mb-2 text-center">
+          {isOwnProfile ? 'My Profile' : `${profile.username}'s Profile`}
+        </h2>
+        {message && <div className="mb-2 text-green-700 bg-green-50 px-3 py-1 rounded text-sm">{message}</div>}
+        <div className="w-full space-y-4 mt-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+            {editing && isOwnProfile ? (
+              <input
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            ) : (
+              <div className="text-gray-900 font-semibold">{profile.username}</div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+            {editing && isOwnProfile ? (
+              <textarea
+                value={bio}
+                onChange={e => setBio(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400 min-h-[60px]"
+                maxLength={500}
+              />
+            ) : (
+              <div className="text-gray-700 whitespace-pre-line min-h-[32px]">{profile.bio || <span className='text-gray-400'>No bio yet.</span>}</div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Avatar URL</label>
+            {editing && isOwnProfile ? (
+              <input
+                value={avatarUrl}
+                onChange={e => setAvatarUrl(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            ) : (
+              <div className="text-gray-700 break-all">{profile.avatarUrl || <span className='text-gray-400'>No avatar set.</span>}</div>
+            )}
+          </div>
+        </div>
+        {isOwnProfile && (
+          <div className="mt-6 w-full flex justify-center">
+            {editing ? (
+              <>
+                <button
+                  onClick={handleSave}
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition mr-2"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => { setEditing(false); setMessage(''); setUsername(profile.username); setBio(profile.bio || ''); setAvatarUrl(profile.avatarUrl || ''); }}
+                  className="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold px-6 py-2 rounded-lg transition"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setEditing(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-2 rounded-lg shadow transition"
+              >
+                Edit Profile
+              </button>
+            )}
+          </div>
         )}
       </div>
-      <div>
-        <label>Bio:</label>
-        {editing && isOwnProfile ? (
-          <textarea value={bio} onChange={e => setBio(e.target.value)} />
-        ) : (
-          <span>{profile.bio}</span>
-        )}
-      </div>
-      <div>
-        <label>Avatar URL:</label>
-        {editing && isOwnProfile ? (
-          <input value={avatarUrl} onChange={e => setAvatarUrl(e.target.value)} />
-        ) : (
-          <span>{profile.avatarUrl}</span>
-        )}
-      </div>
-      {isOwnProfile && (editing ? (
-        <button onClick={handleSave}>Save</button>
-      ) : (
-        <button onClick={() => setEditing(true)}>Edit Profile</button>
-      ))}
     </div>
   );
 };
