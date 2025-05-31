@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { useIPFSGateway } from '../contexts/IPFSGatewayContext';
 import GatewaySelector from "./GatewaySelector";
 import { FaCog } from 'react-icons/fa';
-import type { TMangaChapter } from "../types/manga";
+import type { TMangaChapter, TMangaPage } from "../types/manga";
 
 const Reader: React.FC = () => {
   const { mangaId, chapterId } = useParams();
@@ -52,8 +52,7 @@ const Reader: React.FC = () => {
         <div className="flex-1 flex flex-col items-center">
           <div className="mb-4 w-full flex flex-row items-center justify-between gap-4">
             <div className="text-lg font-semibold">
-              Chapter {chapter.chapterNumber} 
-              {chapter.chapterTitle}
+              Chapter {chapter.chapterNumber} - {chapter.chapterTitle}
             </div>
             <div className="text-sm text-gray-600">
               Page {currentPage + 1} / {pages.length}

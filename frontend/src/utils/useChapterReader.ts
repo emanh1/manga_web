@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { retryOperation } from "./retry";
 import toast from "react-hot-toast";
-import type { TMangaChapter } from "../types/manga";
+import type { TMangaChapter, TMangaPage } from "../types/manga";
 
 interface UseChapterReaderOptions {
   mangaId?: string;
@@ -11,9 +11,17 @@ interface UseChapterReaderOptions {
 
 export function useChapterReader({ mangaId, chapterId, fetchChapterFn }: UseChapterReaderOptions) {
   const [chapter, setChapter] = useState<TMangaChapter | null>(null);
-  const [pages, setPages] = useState<any[]>([]);
+  const [pages, setPages] = useState<TMangaPage[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
+
+  const nextPage = useCallback(() => {
+    if (currentPage < pages.length - 1) setCurrentPage(currentPage + 1);
+  }, [currentPage, pages.length]);
+
+  const previousPage = useCallback(() => {
+    if (currentPage > 0) setCurrentPage(currentPage - 1);
+  }, [currentPage]);
 
   const fetchChapter = async () => {
     if (!mangaId || !chapterId) return;
@@ -27,7 +35,7 @@ export function useChapterReader({ mangaId, chapterId, fetchChapterFn }: UseChap
       setChapter(response);
       setPages(response.pages ?? []);
       setCurrentPage(0);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load chapter after multiple attempts");
     } finally {
       setLoading(false);
@@ -36,28 +44,20 @@ export function useChapterReader({ mangaId, chapterId, fetchChapterFn }: UseChap
 
   useEffect(() => {
     fetchChapter();
-  }, [mangaId, chapterId]);
+  }, [mangaId, chapterId, fetchChapterFn]);
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
       if (event.key === "ArrowRight") nextPage();
       else if (event.key === "ArrowLeft") previousPage();
     },
-    [pages.length, currentPage]
+    [nextPage, previousPage]
   );
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [handleKeyPress]);
-
-  const nextPage = () => {
-    if (currentPage < pages.length - 1) setCurrentPage(currentPage + 1);
-  };
-
-  const previousPage = () => {
-    if (currentPage > 0) setCurrentPage(currentPage - 1);
-  };
 
   return {
     chapter,

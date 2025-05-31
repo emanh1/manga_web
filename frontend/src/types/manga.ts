@@ -62,10 +62,16 @@ export interface TMangaRecommendation {
   };
 }
 
+export interface TMangaPage {
+  id: number;
+  fileOrder: number;
+  filePath: string;
+}
+
 export interface TMangaChapter {
   chapterId: string;
   malId: number | null;
-  volume: string | number | null;
+  volume: number | null;
   chapterNumber?: number | null;
   chapterTitle?: string | null;
   language: string;
@@ -75,5 +81,5 @@ export interface TMangaChapter {
   uploader: User; 
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
-  pages: { id: number; fileOrder: number; filePath: string }[];
+  pages: TMangaPage[];
 }

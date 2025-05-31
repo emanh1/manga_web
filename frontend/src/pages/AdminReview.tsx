@@ -47,7 +47,7 @@ export default function AdminReview() {
     try {
       const response = await uploadAPI.getAllPendingChapters();
       setUploads(response.chapters || []);
-    } catch (error) {
+    } catch {
       toast.error('Failed to fetch pending chapters');
       setUploads([]);
     } finally {
@@ -60,7 +60,7 @@ export default function AdminReview() {
     try {
       const response = await uploadAPI.getAllRejectedChapters();
       setUploads(response.chapters || []);
-    } catch (error) {
+    } catch {
       toast.error('Failed to fetch rejected chapters');
       setUploads([]);
     } finally {
@@ -81,7 +81,7 @@ export default function AdminReview() {
       toast.success('Review submitted successfully');
       if (view === 'pending') fetchPendingChapters();
       else fetchRejectedChapters();
-    } catch (error) {
+    } catch {
       toast.error('Failed to submit review');
     }
   };
