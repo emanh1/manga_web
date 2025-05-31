@@ -62,3 +62,42 @@ export const changePassword = async (req, res, next) => {
     next(new AppError(error.message, 400));
   }
 };
+
+export const getUserUploads = async (req, res, next) => {
+  try {
+    let userId;
+    if (req.params.uuid) {
+      const user = await db.User.findOne({ where: { uuid: req.params.uuid } });
+      if (!user) return next(new AppError('User not found', 404));
+      userId = user.uuid;
+    } else {
+      userId = req.user.uuid;
+    }
+    const uploads = await db.MangaUpload.findAll({
+      where: { uploaderId: userId },
+      order: [['malId', 'ASC'], ['volume', 'ASC'], ['chapterNumber', 'ASC']],
+    });
+    const grouped = {};
+    for (const upload of uploads) {
+      if (!grouped[upload.malId]) {
+        grouped[upload.malId] = {
+          malId: upload.malId,
+          title: upload.title,
+          chapters: []
+        };
+      }
+      grouped[upload.malId].chapters.push({
+        chapterId: upload.chapterId,
+        chapterNumber: upload.chapterNumber,
+        volume: upload.volume,
+        chapterTitle: upload.chapterTitle,
+        language: upload.language,
+        isOneshot: upload.isOneshot,
+        uploadedAt: upload.createdAt
+      });
+    }
+    res.json({ uploads: Object.values(grouped) });
+  } catch (error) {
+    next(new AppError(error.message, 500));
+  }
+};

@@ -257,6 +257,13 @@ static async reviewChapter(id, status, rejectionReason = null) {
   await upload.save();
   return upload;
 }
+
+static async findUploadsByChapter(mangaId, chapterId) {
+  return db.MangaUpload.findAll({
+    where: { malId: mangaId, chapterId },
+  });
+}
+
 }
 
 export default UploadService;

@@ -41,6 +41,7 @@ export default (sequelize) => {
     avatarUrl: {
       type: DataTypes.STRING,
       allowNull: true,
+      defaultValue: 'https://localhost:5173/default_profile.png', //TODO
     },
     resetPasswordToken: {
       type: DataTypes.STRING,
@@ -53,6 +54,9 @@ export default (sequelize) => {
   }, {
     hooks: {
       beforeCreate: async (user) => {
+        if (!user.avatarUrl) {
+          user.avatarUrl = 'https://api.dicebear.com/7.x/bottts/svg?seed=default';
+        }
         if (user.password) {
           user.password = await bcrypt.hash(user.password, 10);
         }
