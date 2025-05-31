@@ -42,6 +42,12 @@ const Layout: React.FC<Props> = ({ children }) => {
                   >
                     My Profile
                   </Link>
+                  <Link
+                    to="/settings"
+                    className="text-gray-600 hover:text-purple-600 transition"
+                  >
+                    Settings
+                  </Link>
                   <button
                     onClick={handleLogout}
                     className="text-gray-600 hover:text-purple-600 transition"

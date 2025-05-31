@@ -60,6 +60,14 @@ class AuthService {
       avatarUrl: user.avatarUrl
     };
   }
+
+  static async findUserByEmail(email) {
+    return db.User.findOne({ where: { email } });
+  }
+
+  static async findUserByResetToken(token) {
+    return db.User.findOne({ where: { resetPasswordToken: token } });
+  }
 }
 
 export default AuthService;
