@@ -1,33 +1,17 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import type { TMangaRecommendation, TManga } from "../types/manga";
+import { useMangaDetails } from '../hooks/useMangaDetails';
+import type { TMangaRecommendation } from "../types/manga";
 import MangaCard from "./MangaCard";
-import { getMangaDetails } from "../api/jikan";
 
 export const RecommendationCard: React.FC<{
   recommendation: TMangaRecommendation;
   isExpanded: boolean;
   onToggle: () => void;
 }> = ({ recommendation, isExpanded, onToggle }) => {
-  const [firstManga, setFirstManga] = useState<TManga | null>(null);
-  const [secondManga, setSecondManga] = useState<TManga | null>(null);
+  const { manga: firstManga, loading: loadingFirst } = useMangaDetails(recommendation.entry[0]?.mal_id);
+  const { manga: secondManga, loading: loadingSecond } = useMangaDetails(recommendation.entry[1]?.mal_id);
 
-  useEffect(() => {
-    const fetchMangaDetails = async () => {
-      try {
-        const first = await getMangaDetails(recommendation.entry[0].mal_id);
-        setFirstManga(first);
-        const second = await getMangaDetails(recommendation.entry[1].mal_id);
-        setSecondManga(second);
-      } catch (error) {
-        console.error("Error fetching manga details:", error);
-      }
-    };
-
-    fetchMangaDetails();
-  }, [recommendation.entry]);
-
-  if (!firstManga || !secondManga) {
+  if (loadingFirst || loadingSecond || !firstManga || !secondManga) {
     return <div className="bg-white p-4 rounded-lg shadow">Loading...</div>;
   }
 

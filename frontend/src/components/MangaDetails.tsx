@@ -1,11 +1,10 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { getMangaDetails } from "../api/jikan";
-import type { TManga, TMangaChapter, TMALEntity } from "../types/manga";
+import type { TMangaChapter, TMALEntity } from "../types/manga";
 import toast from 'react-hot-toast';
 import { useAuth } from "../contexts/AuthContext";
 import { uploadAPI } from "../api/axios";
-import { retryOperation } from "../utils/retry";
+import { useMangaDetails } from "../hooks/useMangaDetails";
 
 function sortVolumes(a: [string | number, TMangaChapter[]], b: [string | number, TMangaChapter[]]) {
   if (a[0] === 'Other') return -1;
@@ -69,34 +68,20 @@ const MangaDetails: React.FC = () => {
   const { mangaId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [manga, setManga] = useState<TManga | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { manga, loading: mangaLoading, error } = useMangaDetails(mangaId);
   const [chapters, setChapters] = useState<TMangaChapter[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchData() {
-      if (!mangaId) return;
-      setLoading(true);
-      try {
-        const [mangaData, chaptersData] = await retryOperation(
-          async () => Promise.all([
-            getMangaDetails(parseInt(mangaId)),
-            uploadAPI.getChapters(mangaId)
-          ]),
-          3,
-          1000
-        );
-        setManga(mangaData);
-        setChapters(chaptersData.chapters);
-      } catch {
-        toast.error('Failed to load manga details after multiple attempts');
+    if (!mangaId) return;
+    setLoading(true);
+    uploadAPI.getChapters(mangaId)
+      .then((chaptersData) => setChapters(chaptersData.chapters))
+      .catch(() => {
+        toast.error('Failed to load chapters');
         setChapters([]);
-        setManga(null);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+      })
+      .finally(() => setLoading(false));
   }, [mangaId]);
 
   const chaptersByVolume = useMemo(() =>
@@ -107,7 +92,8 @@ const MangaDetails: React.FC = () => {
       return acc;
     }, {} as Record<string | number, TMangaChapter[]>), [chapters]);
 
-  if (loading) return <div>Loading...</div>;
+  if (mangaLoading || loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-500">{error.message}</div>;
   if (!manga) return <div>Manga not found</div>;
 
   return (
