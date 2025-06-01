@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import db from '../models/index.js';
+import AppError from '../utils/appError.js';
 
 class AuthService {
   static async register(username, email, password) {
@@ -10,7 +11,7 @@ class AuthService {
     });
 
     if (existingUser) {
-      throw new Error('Username or email already exists');
+      throw new AppError('Username or email already exists', 400);
     }
 
     const user = await db.User.create({
@@ -33,7 +34,7 @@ class AuthService {
     });
 
     if (!user || !(await user.validatePassword(password))) {
-      throw new Error('Invalid username or password');
+      throw new AppError('Invalid username or password', 401);
     }
 
     const token = this.generateToken(user.uuid);
