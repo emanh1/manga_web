@@ -1,34 +1,40 @@
-import React, { useState } from "react";
+import React from "react";
 import { useIPFSGateway } from "../contexts/IPFSGatewayContext";
 
 const PRESET_GATEWAYS = [
   { label: "IPFS.io", value: "https://ipfs.io/ipfs/" },
   { label: "Cloudflare", value: "https://cloudflare-ipfs.com/ipfs/" },
   { label: "Infura", value: "https://infura-ipfs.io/ipfs/" },
-  { label: "Custom", value: "custom" },
 ];
+
+function getCustomGateways(): string[] {
+  try {
+    return JSON.parse(localStorage.getItem('customIPFSGateways') || '[]');
+  } catch {
+    return [];
+  }
+}
 
 const GatewaySelector: React.FC = () => {
   const { gateway, setGateway } = useIPFSGateway();
-  const [custom, setCustom] = useState(
-    PRESET_GATEWAYS.some((g) => g.value === gateway) ? "" : gateway
-  );
-  const [selected, setSelected] = useState(
-    PRESET_GATEWAYS.find((g) => g.value === gateway) ? gateway : "custom"
-  );
+  const [customGateways, setCustomGateways] = React.useState<string[]>(getCustomGateways());
+  const allGateways = [
+    ...PRESET_GATEWAYS,
+    ...customGateways.map(gw => ({ label: gw, value: gw })),
+  ];
+  const [selected, setSelected] = React.useState(() => {
+    return allGateways.find((g) => g.value === gateway) ? gateway : PRESET_GATEWAYS[0].value;
+  });
+
+  React.useEffect(() => {
+    setCustomGateways(getCustomGateways());
+  }, []);
+  React.useEffect(() => {
+    setSelected(allGateways.find((g) => g.value === gateway) ? gateway : PRESET_GATEWAYS[0].value);
+  }, [gateway, customGateways]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const val = e.target.value;
-    setSelected(val);
-    if (val === "custom") {
-      setGateway(custom || "https://ipfs.io/ipfs/");
-    } else {
-      setGateway(val);
-    }
-  };
-
-  const handleCustomChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCustom(e.target.value);
+    setSelected(e.target.value);
     setGateway(e.target.value);
   };
 
@@ -39,22 +45,12 @@ const GatewaySelector: React.FC = () => {
         onChange={handleSelect}
         className="border rounded px-2 py-1 text-sm"
       >
-        {PRESET_GATEWAYS.map((g) => (
+        {allGateways.map((g) => (
           <option key={g.value} value={g.value}>
             {g.label}
           </option>
         ))}
       </select>
-      {selected === "custom" && (
-        <input
-          type="text"
-          value={custom}
-          onChange={handleCustomChange}
-          className="border rounded px-2 py-1 text-sm"
-          style={{ width: 320 }}
-          placeholder="Custom IPFS Gateway URL (e.g. https://mygateway.com/ipfs/)"
-        />
-      )}
     </div>
   );
 };

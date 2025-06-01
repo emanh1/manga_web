@@ -3,7 +3,7 @@ import axiosInstance from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 
 const Settings: React.FC = () => {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const [email, setEmail] = useState(user?.email || '');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -11,6 +11,16 @@ const Settings: React.FC = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  const [customGateways, setCustomGateways] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('customIPFSGateways') || '[]');
+    } catch {
+      return [];
+    }
+  });
+  const [newGateway, setNewGateway] = useState('');
+  const [gatewayMessage, setGatewayMessage] = useState('');
 
   const handleEmailChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +61,33 @@ const Settings: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAddGateway = (e: React.FormEvent) => {
+    e.preventDefault();
+    let gw = newGateway.trim();
+    if (!gw.startsWith('http')) {
+      setGatewayMessage('Gateway must start with http(s)');
+      return;
+    }
+    if (!gw.endsWith('/')) {
+      gw += '/';
+    }
+    if (customGateways.includes(gw)) {
+      setGatewayMessage('Gateway already added');
+      return;
+    }
+    const updated = [...customGateways, gw];
+    setCustomGateways(updated);
+    localStorage.setItem('customIPFSGateways', JSON.stringify(updated));
+    setNewGateway('');
+    setGatewayMessage('Gateway added!');
+  };
+
+  const handleRemoveGateway = (gw: string) => {
+    const updated = customGateways.filter(g => g !== gw);
+    setCustomGateways(updated);
+    localStorage.setItem('customIPFSGateways', JSON.stringify(updated));
   };
 
   return (
@@ -117,6 +154,30 @@ const Settings: React.FC = () => {
             Update Password
           </button>
         </form>
+        {/* --- IPFS Gateway Management --- */}
+        <div className="mt-8">
+          <h3 className="text-lg font-semibold mb-2">Custom IPFS Gateways</h3>
+          <form onSubmit={handleAddGateway} className="flex gap-2 mb-2">
+            <input
+              type="text"
+              value={newGateway}
+              onChange={e => { setNewGateway(e.target.value); setGatewayMessage(''); }}
+              placeholder="https://your-gateway.example.com/ipfs/"
+              className="flex-1 px-3 py-2 border rounded-lg"
+            />
+            <button type="submit" className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">Add</button>
+          </form>
+          {gatewayMessage && <div className="text-sm mb-2 text-green-700">{gatewayMessage}</div>}
+          <ul className="space-y-2">
+            {customGateways.length === 0 && <li className="text-gray-500 text-sm">No custom gateways added.</li>}
+            {customGateways.map(gw => (
+              <li key={gw} className="flex items-center gap-2">
+                <span className="break-all flex-1">{gw}</span>
+                <button type="button" onClick={() => handleRemoveGateway(gw)} className="text-red-600 hover:underline text-xs">Remove</button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   );
