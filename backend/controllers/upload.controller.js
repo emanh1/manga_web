@@ -37,6 +37,27 @@ export const upload = multer({
   }
 }).array('files', 100);
 
+async function cleanupFiles(files) {
+  if (!files || files.length === 0) return;
+  await Promise.all(files.map(async (file) => {
+    try {
+      if (fs.existsSync(file.path)) {
+        await fs.promises.unlink(file.path);
+      }
+    } catch (err) {
+      console.error('Error deleting file:', file.path, err);
+    }
+  }));
+}
+
+function formatSequelizeError(error) {
+  return {
+    status: 'fail',
+    message: 'Database validation error',
+    errors: error.errors?.map(e => ({ message: e.message, path: e.path })) || error.message
+  };
+}
+
 export const uploadMangaChapter = async (req, res, next) => {
   const uploadedFiles = [];
   try {
@@ -53,11 +74,7 @@ export const uploadMangaChapter = async (req, res, next) => {
     const result = await UploadService.createMangaUpload(req.body, ipfsResult, req.user.uuid);
 
     // Clean up local files
-    uploadedFiles.forEach(file => {
-      fs.unlink(file.path, (err) => {
-        if (err) console.error('Failed to delete local file:', file.path, err);
-      });
-    });
+    await cleanupFiles(uploadedFiles);
 
     const response = {
       message: result.fileErrors.length > 0 ? 'Upload completed with some errors' : 'Files uploaded successfully',
@@ -66,23 +83,9 @@ export const uploadMangaChapter = async (req, res, next) => {
 
     res.status(201).json(response);
   } catch (error) {
-    // Clean up local files if error
-    if (uploadedFiles.length > 0) {
-      uploadedFiles.forEach(file => {
-        try {
-          fs.unlinkSync(file.path);
-        } catch (err) {
-          console.error('Error deleting file:', err);
-        }
-      });
-    }
-    // Enhanced error reporting for Sequelize validation errors
+    await cleanupFiles(uploadedFiles);
     if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
-      return res.status(400).json({
-        status: 'fail',
-        message: 'Database validation error',
-        errors: error.errors?.map(e => ({ message: e.message, path: e.path })) || error.message
-      });
+      return res.status(400).json(formatSequelizeError(error));
     }
     next(new AppError(error.message, 500));
   }
