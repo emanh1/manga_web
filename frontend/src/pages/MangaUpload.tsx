@@ -238,9 +238,10 @@ export default function MangaUpload() {
           <label className="block text-sm font-medium mb-1">Chapter Title (optional)</label>
           <input
             type="text"
-            className="w-full px-3 py-2 border rounded-lg"
+            className="w-full px-3 py-2 border rounded-lg disabled:opacity-20"
             placeholder="Enter chapter title..."
             {...register('chapterTitle')}
+            disabled={isOneshot}
           />
         </div>
 
