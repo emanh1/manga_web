@@ -9,7 +9,7 @@ import MangaUpload from '../pages/MangaUpload';
 import AdminReview from '../pages/AdminReview';
 import { Toaster } from 'react-hot-toast';
 import MangaDetails from '../components/MangaDetails';
-import Reader from '../components/Reader';
+import Reader from '../components/reader/Reader';
 import PreviewReader from '../components/PreviewReader';
 import Profile from '../pages/Profile';
 import ForgotPassword from '../pages/ForgotPassword';
