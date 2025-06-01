@@ -33,18 +33,37 @@ const loginSchema = z.object({
     .min(1, { message: 'Password is required' })
 });
 
+const parseOptionalNumber = (val) => {
+  if (val === '' || val === undefined || val === null) return undefined;
+  const n = Number(val);
+  return isNaN(n) ? undefined : n;
+};
+
+const parseRequiredNumber = (val) => { //use val: unknown
+  const n = Number(val);
+  return typeof val === 'string' && val.trim() === '' ? undefined : (isNaN(n) ? undefined : n);
+};
+
 const uploadSchema = z.object({
   title: z.string()
     .trim()
     .min(1, { message: 'Title is required' }),
-  malId: z.preprocess((val) => Number(val), z.number().min(1, { message: 'MAL ID is required' })),
-  volume: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().optional()),
-  chapterNumber: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().optional()),
+
+  malId: z.preprocess(parseRequiredNumber, 
+    z.number().min(1, { message: 'MAL ID is required' })),
+
+  volume: z.preprocess(parseOptionalNumber, z.number().optional()),
+
+  chapterNumber: z.preprocess(parseOptionalNumber, z.number().optional()),
+
   chapterTitle: z.string().optional(),
+
   language: z.string()
     .trim()
     .min(1, { message: 'Language is required' }),
-  isOneshot: z.union([z.boolean(), z.string()]).transform(val => val === true || val === 'true'),
+
+  isOneshot: z.union([z.boolean(), z.string()])
+    .transform(val => val === true || val === 'true'),
 });
 
 export const registerValidation = validateRequest(registerSchema);
