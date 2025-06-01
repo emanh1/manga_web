@@ -3,6 +3,7 @@ import { uploadFilesToIPFS } from '../utils/ipfsClient.ts';
 import { retryOperation } from '../utils/retry.js';
 import { Op } from 'sequelize';
 import { v4 as uuidv4 } from 'uuid';
+import AppError from '../utils/appError.js';
 
 class UploadService {
   static MAX_RETRIES = 3;
@@ -31,7 +32,7 @@ class UploadService {
     }
 
     if (cids.length === 0) {
-      throw new Error('All files failed to upload to IPFS');
+      throw new AppError('All files failed to upload to IPFS', 400);
     }
 
     return { cids, fileErrors, uploadedFiles };
@@ -70,25 +71,8 @@ class UploadService {
     };
   }
 
-  static async getChapterInfo(mangaId, chapterId) {
-    const pages = await db.MangaUpload.findAll({
-      where: {
-        chapterId,
-        malId: mangaId,
-        status: 'approved'
-      },
-      include: [{
-        model: db.User,
-        as: 'uploader',
-        attributes: ['username', 'uuid']
-      }],
-      order: [['fileOrder', 'ASC']]
-    });
-
-    if (!pages || pages.length === 0) {
-      throw new Error('Chapter not found');
-    }
-
+  static _formatChapterResult(pages) {
+    if (!pages || pages.length === 0) return null;
     return {
       id: pages[0].chapterId,
       title: pages[0].title,
@@ -106,14 +90,13 @@ class UploadService {
     };
   }
 
-  static async getChapterInfoPreview(mangaId, chapterId) {
+  static async _getChapterByStatus(mangaId, chapterId, statuses) {
+    const whereStatus = { [Op.in]: statuses };
     const pages = await db.MangaUpload.findAll({
       where: {
         chapterId,
         malId: mangaId,
-        status: {
-          [Op.in]: ['pending', 'rejected']
-        }
+        status: whereStatus
       },
       include: [{
         model: db.User,
@@ -122,26 +105,31 @@ class UploadService {
       }],
       order: [['fileOrder', 'ASC']]
     });
-
     if (!pages || pages.length === 0) {
-      throw new Error('Chapter not found');
+      throw new AppError('Chapter not found');
     }
+    return this._formatChapterResult(pages);
+  }
 
-    return {
-      id: pages[0].chapterId,
-      title: pages[0].title,
-      chapterNumber: pages[0].chapterNumber,
-      volume: pages[0].volume,
-      chapterTitle: pages[0].chapterTitle,
-      language: pages[0].language,
-      isOneshot: pages[0].isOneshot,
-      uploader: pages[0].uploader,
-      pages: pages.map(page => ({
-        id: page.id,
-        fileOrder: page.fileOrder,
-        filePath: page.filePath
-      }))
-    };
+  static async getChapterInfo(mangaId, chapterId) {
+    return this._getChapterByStatus(mangaId, chapterId, ['approved']);
+  }
+
+  static async getChapterInfoPreview(mangaId, chapterId) {
+    return this._getChapterByStatus(mangaId, chapterId, ['pending', 'rejected']);
+  }
+
+  static async findUploadsByChapter(mangaId, chapterId) {
+    const pages = await db.MangaUpload.findAll({
+      where: { malId: mangaId, chapterId },
+      include: [{
+        model: db.User,
+        as: 'uploader',
+        attributes: ['username', 'uuid']
+      }],
+      order: [['fileOrder', 'ASC']]
+    });
+    return this._formatChapterResult(pages);
   }
 
   static async getChapters(mangaId) {
@@ -183,90 +171,61 @@ class UploadService {
   }));
 }
 
-static async getAllPendingChapters() {
-  const uploads = await db.MangaUpload.findAll({
-    where: { status: 'pending' },
-    include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
-    order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
-  });
-  // Group by chapterId
-  const chapters = {};
-  uploads.forEach(upload => {
-    if (!chapters[upload.chapterId]) {
-      chapters[upload.chapterId] = {
-        chapterId: upload.chapterId,
-        malId: upload.malId,
-        title: upload.title,
-        chapterNumber: upload.chapterNumber,
-        volume: upload.volume,
-        chapterTitle: upload.chapterTitle,
-        language: upload.language,
-        isOneshot: upload.isOneshot,
-        status: upload.status,
-        rejectionReason: upload.rejectionReason,
-        uploader: upload.uploader,
-        createdAt: upload.createdAt,
-        pages: []
-      };
-    }
-    chapters[upload.chapterId].pages.push({
-      id: upload.id,
-      fileOrder: upload.fileOrder,
-      filePath: upload.filePath
+  static _groupUploadsByChapter(uploads) {
+    const chapters = {};
+    uploads.forEach(upload => {
+      if (!chapters[upload.chapterId]) {
+        chapters[upload.chapterId] = {
+          chapterId: upload.chapterId,
+          malId: upload.malId,
+          title: upload.title,
+          chapterNumber: upload.chapterNumber,
+          volume: upload.volume,
+          chapterTitle: upload.chapterTitle,
+          language: upload.language,
+          isOneshot: upload.isOneshot,
+          status: upload.status,
+          rejectionReason: upload.rejectionReason,
+          uploader: upload.uploader,
+          createdAt: upload.createdAt,
+          pages: []
+        };
+      }
+      chapters[upload.chapterId].pages.push({
+        id: upload.id,
+        fileOrder: upload.fileOrder,
+        filePath: upload.filePath
+      });
     });
-  });
-  return Object.values(chapters);
-}
+    return Object.values(chapters);
+  }
 
-static async getAllRejectedChapters() {
-  const uploads = await db.MangaUpload.findAll({
-    where: { status: 'rejected' },
-    include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
-    order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
-  });
-  // Group by chapterId
-  const chapters = {};
-  uploads.forEach(upload => {
-    if (!chapters[upload.chapterId]) {
-      chapters[upload.chapterId] = {
-        chapterId: upload.chapterId,
-        malId: upload.malId,
-        title: upload.title,
-        chapterNumber: upload.chapterNumber,
-        volume: upload.volume,
-        chapterTitle: upload.chapterTitle,
-        language: upload.language,
-        isOneshot: upload.isOneshot,
-        status: upload.status,
-        rejectionReason: upload.rejectionReason,
-        uploader: upload.uploader,
-        createdAt: upload.createdAt,
-        pages: []
-      };
-    }
-    chapters[upload.chapterId].pages.push({
-      id: upload.id,
-      fileOrder: upload.fileOrder,
-      filePath: upload.filePath
+  static async getAllPendingChapters() {
+    const uploads = await db.MangaUpload.findAll({
+      where: { status: 'pending' },
+      include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
+      order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
     });
-  });
-  return Object.values(chapters);
-}
+    return this._groupUploadsByChapter(uploads);
+  }
 
-static async reviewChapter(id, status, rejectionReason = null) {
-  const upload = await db.MangaUpload.findByPk(id);
-  if (!upload) throw new Error('Upload not found');
-  upload.status = status;
-  upload.rejectionReason = status === 'rejected' ? rejectionReason : null;
-  await upload.save();
-  return upload;
-}
+  static async getAllRejectedChapters() {
+    const uploads = await db.MangaUpload.findAll({
+      where: { status: 'rejected' },
+      include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
+      order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
+    });
+    return this._groupUploadsByChapter(uploads);
+  }
 
-static async findUploadsByChapter(mangaId, chapterId) {
-  return db.MangaUpload.findAll({
-    where: { malId: mangaId, chapterId },
-  });
-}
+  static async reviewChapter(id, status, rejectionReason = null) {
+    const upload = await db.MangaUpload.findByPk(id);
+    if (!upload) throw new AppError('Upload not found', 404);
+    upload.status = status;
+    upload.rejectionReason = status === 'rejected' ? rejectionReason : null;
+    await upload.save();
+    return upload;
+  }
 
 }
 
