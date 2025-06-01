@@ -38,7 +38,11 @@ class UploadService {
   }
 
   static async createMangaUpload(uploadData, files, userId) {
-    const { title, malId, volume, chapterNumber, chapterTitle, language, isOneshot } = uploadData;
+    let { title, malId, volume, chapterNumber, chapterTitle, language, isOneshot } = uploadData;
+
+    if (isOneshot === true || isOneshot === 'true') {
+      chapterTitle = 'Oneshot';
+    }
 
     const commonChapterId = uuidv4();
 
