@@ -3,8 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { getMangaDetails } from '../api/jikan';
-import type { TManga } from '../types/manga';
+import { useMangaDetails } from '../hooks/useMangaDetails';
 import toast from 'react-hot-toast';
 import FileUploadManager from '../components/FileUploadManager';
 import axiosInstance from '../api/axios';
@@ -38,7 +37,6 @@ export default function MangaUpload() {
   const { mangaId } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedManga, setSelectedManga] = useState<TManga | null>(null);
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [failedFiles, setFailedFiles] = useState<{ name: string; error: string }[]>([]);
@@ -63,8 +61,12 @@ export default function MangaUpload() {
     },
   });
 
-  const malId = watch('malId');
+  const malIdRaw = watch('malId');
+  const malId = typeof malIdRaw === 'string' || typeof malIdRaw === 'number' ? malIdRaw : undefined;
   const isOneshot = watch('isOneshot');
+
+  // Use the new hook
+  const { manga: selectedManga } = useMangaDetails(malId);
 
   // Set malId from URL param if present
   useEffect(() => {
@@ -73,21 +75,12 @@ export default function MangaUpload() {
     }
   }, [mangaId, setValue]);
 
-  // Fetch manga details when malId changes
+  // Set title from selectedManga
   useEffect(() => {
-    if (malId) {
-      (async () => {
-        try {
-          const details = await getMangaDetails(Number(malId));
-          setSelectedManga(details);
-          setValue('title', details.title);
-        } catch (error) {
-          console.error('Error fetching manga details:', error);
-          toast.error('Failed to fetch manga details');
-        }
-      })();
+    if (selectedManga) {
+      setValue('title', selectedManga.title);
     }
-  }, [malId, setValue]);
+  }, [selectedManga, setValue]);
 
   // Sync files state with form
   useEffect(() => {
