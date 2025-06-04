@@ -40,6 +40,7 @@ export default function MangaUpload() {
   const [files, setFiles] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [failedFiles, setFailedFiles] = useState<{ name: string; error: string }[]>([]);
+  const [ipfsNodeUrl, setIpfsNodeUrl] = useState<string>('http://localhost:5001/api/v0');
 
   const {
     register,
@@ -104,6 +105,7 @@ export default function MangaUpload() {
       if (data.chapterTitle) formData.append('chapterTitle', data.chapterTitle);
       formData.append('isOneshot', String(data.isOneshot));
       formData.append('language', data.language);
+      formData.append('ipfsNodeUrl', ipfsNodeUrl);
       Array.from(data.files).forEach((file, index) => {
         formData.append('files', file);
         formData.append('fileOrder', String(index + 1));
@@ -144,6 +146,19 @@ export default function MangaUpload() {
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Upload Manga</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">IPFS Node/API URL</label>
+          <input
+            type="text"
+            className="w-full px-3 py-2 border rounded-lg"
+            value={ipfsNodeUrl}
+            onChange={e => setIpfsNodeUrl(e.target.value)}
+            placeholder="http://localhost:5001/api/v0"
+            required
+          />
+          <div className="mt-1 text-xs text-gray-500">This is the IPFS node your files will be uploaded to.</div>
+        </div>
+
         {selectedManga ? (
           <div className="flex gap-4 items-start mb-4">
             <img

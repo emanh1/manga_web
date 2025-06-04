@@ -1,16 +1,15 @@
 import { create } from 'kubo-rpc-client';
 import fs from 'fs';
 
-const client = create({url: 'http://localhost:5001/api/v0'}); //TODO: create from a database of known nodes
-
-export const uploadFilesToIPFS = async (files): Promise<string[]> => {
+export const uploadFilesToIPFS = async (files, nodeUrl = 'http://localhost:5001/api/v0'): Promise<string[]> => {
+  const client = create({ url: nodeUrl });
   const results: string[] = [];
   for (const file of files) {
     const stream = fs.createReadStream(file.path);
-    const { cid } = await client.add({content: stream});
+    const { cid } = await client.add({ content: stream });
     results.push(cid.toString());
   }
   return results;
 };
 
-export default client;
+export default uploadFilesToIPFS;

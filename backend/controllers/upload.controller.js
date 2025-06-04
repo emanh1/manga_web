@@ -66,8 +66,10 @@ export const uploadMangaChapter = async (req, res, next) => {
       throw new AppError('No files uploaded', 400);
     }
 
+    const nodeUrl = req.body.ipfsNodeUrl || 'http://localhost:5001/api/v0';
+
     // Upload files to IPFS
-    const ipfsResult = await UploadService.uploadToIpfs(files);
+    const ipfsResult = await UploadService.uploadToIpfs(files, nodeUrl);
     uploadedFiles.push(...ipfsResult.uploadedFiles);
 
     // Create manga upload records
