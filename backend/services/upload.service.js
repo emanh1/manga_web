@@ -9,7 +9,7 @@ class UploadService {
   static MAX_RETRIES = 3;
   static RETRY_DELAY = 1000;
 
-  static async uploadToIpfs(files) {
+  static async uploadToIpfs(files, nodeUrl) {
     const fileErrors = [];
     const uploadedFiles = [];
     const cids = [];
@@ -18,7 +18,7 @@ class UploadService {
       try {
         const cid = await retryOperation(
           async () => {
-            const [fileCid] = await uploadFilesToIPFS([file]);
+            const [fileCid] = await uploadFilesToIPFS([file], nodeUrl);
             return fileCid;
           },
           this.MAX_RETRIES,
