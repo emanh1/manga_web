@@ -5,6 +5,8 @@ import toast from 'react-hot-toast';
 import { useAuth } from "../contexts/AuthContext";
 import { uploadAPI } from "../api/axios";
 import { useMangaDetails } from "../hooks/useMangaDetails";
+import { formatDistanceToNow } from 'date-fns';
+import { FaClock, FaEye, FaUser } from 'react-icons/fa';
 
 function sortVolumes(a: [string | number, TMangaChapter[]], b: [string | number, TMangaChapter[]]) {
   if (a[0] === 'Other') return -1;
@@ -24,24 +26,30 @@ const ChapterListItem: React.FC<{
   <li
     key={chapter.chapterId}
     onClick={() => navigate(`/manga/${mangaId}/${chapter.chapterId}`)}
-    className="py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer"
+    className="py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-4"
   >
-    <div className="font-medium">
-      {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special Chapter'}
-      {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
+    <div className="flex-1 min-w-0">
+      <div className="font-medium truncate">
+        {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special Chapter'}
+        {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
+      </div>
+      <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+        <span><FaClock className="inline-block align-middle mr-1 text-sm"/> {formatDistanceToNow(new Date(chapter.uploadedAt), {addSuffix: true})}</span>
+        <span>
+          <FaEye className="inline-block align-middle mr-1 text-sm"/> {chapter.viewCount}
+        </span>
+      </div>
     </div>
-    <div className="text-sm text-gray-600">
-      Uploaded by{' '}
-      <Link
-        to={`/profile/${chapter.uploader.uuid}`}
-        className="text-purple-600 hover:underline"
-        onClick={e => e.stopPropagation()}
-      >
-        {chapter.uploader.username}
-      </Link>
-    </div>
-    <div className="text-sm text-gray-500">
-      {new Date(chapter.uploadedAt).toLocaleDateString()}
+    <div className="flex flex-col items-end min-w-[120px]">
+      <div className="text-xs text-gray-600">
+        <Link
+          to={`/profile/${chapter.uploader.uuid}`}
+          className="text-purple-600 hover:underline"
+          onClick={e => e.stopPropagation()}
+        >
+          <FaUser className="inline-block align-middle mr-1 text-sm"/> {chapter.uploader.username}
+        </Link>
+      </div>
     </div>
   </li>
 );

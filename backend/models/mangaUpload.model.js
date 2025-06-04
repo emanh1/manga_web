@@ -64,6 +64,11 @@ export default (sequelize) => {
         key: 'uuid',
       },
     },
+    viewCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
   });
 
   MangaUpload.associate = (models) => {
