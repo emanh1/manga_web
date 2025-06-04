@@ -82,4 +82,5 @@ export interface TMangaChapter {
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
   pages: TMangaPage[];
+  viewCount: number; 
 }

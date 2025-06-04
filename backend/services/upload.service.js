@@ -82,6 +82,7 @@ class UploadService {
       language: pages[0].language,
       isOneshot: pages[0].isOneshot,
       uploader: pages[0].uploader,
+      viewCount: pages[0].viewCount,
       pages: pages.map(page => ({
         id: page.id,
         fileOrder: page.fileOrder,
@@ -92,6 +93,10 @@ class UploadService {
 
   static async _getChapterByStatus(mangaId, chapterId, statuses) {
     const whereStatus = { [Op.in]: statuses };
+    await db.MangaUpload.increment('viewCount', {
+      by: 1,
+      where: { chapterId, malId: mangaId }
+    });
     const pages = await db.MangaUpload.findAll({
       where: {
         chapterId,
@@ -145,6 +150,7 @@ class UploadService {
         'chapterTitle',
         'language',
         'isOneshot',
+        'viewCount',
         [db.Sequelize.fn('MIN', db.Sequelize.col('MangaUpload.createdAt')), 'uploadedAt']
       ],
       include: [{
@@ -152,7 +158,7 @@ class UploadService {
         as: 'uploader',
         attributes: ['username', 'uuid']
       }],
-      group: ['chapterId', 'chapterNumber', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.uuid', 'uploader.username'],
+      group: ['chapterId', 'chapterNumber', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.uuid', 'uploader.username', 'viewCount'],
       order: [
         ['volume', 'ASC'],
         ['chapterNumber', 'ASC']
@@ -167,7 +173,8 @@ class UploadService {
     language: chapter.language,
     isOneshot: chapter.isOneshot,
     uploadedAt: chapter.get('uploadedAt'),
-    uploader: chapter.uploader ? { username: chapter.uploader.username, uuid: chapter.uploader.uuid } : null
+    uploader: chapter.uploader ? { username: chapter.uploader.username, uuid: chapter.uploader.uuid } : null,
+    viewCount: chapter.viewCount
   }));
 }
 
