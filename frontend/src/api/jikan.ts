@@ -53,3 +53,10 @@ export const getRandomManga = async (): Promise<TManga> => {
     return response.data.data;
   });
 };
+
+export const getMangaPictures = async (id: number) => {
+  return axiosWithRetry(async () => {
+    const response = await api.get(`/manga/${id}/pictures`);
+    return response.data.data;
+  });
+};

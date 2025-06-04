@@ -7,6 +7,8 @@ import { uploadAPI } from "../api/axios";
 import { useMangaDetails } from "../hooks/useMangaDetails";
 import { formatDistanceToNow } from 'date-fns';
 import { FaClock, FaEye, FaUser } from 'react-icons/fa';
+import { getMangaPictures } from "../api/jikan";
+import type { TMangaPicture } from "../types/mangaPictures";
 
 function sortVolumes(a: [string | number, TMangaChapter[]], b: [string | number, TMangaChapter[]]) {
   if (a[0] === 'Other') return -1;
@@ -72,6 +74,12 @@ const VolumeSection: React.FC<{
   </div>
 );
 
+const TABS = [
+  { label: "Chapters" },
+  { label: "Comments (0)" }, //TODO: comments section
+  { label: "Art" },
+];
+
 const MangaDetails: React.FC = () => {
   const { mangaId } = useParams();
   const navigate = useNavigate();
@@ -79,6 +87,10 @@ const MangaDetails: React.FC = () => {
   const { manga, loading: mangaLoading, error } = useMangaDetails(mangaId);
   const [chapters, setChapters] = useState<TMangaChapter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTab, setSelectedTab] = useState(0);
+  const [artImages, setArtImages] = useState<TMangaPicture[]>([]);
+  const [artLoading, setArtLoading] = useState(false);
+  const [artError, setArtError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mangaId) return;
@@ -91,6 +103,17 @@ const MangaDetails: React.FC = () => {
       })
       .finally(() => setLoading(false));
   }, [mangaId]);
+
+  useEffect(() => {
+    if (!mangaId) return;
+    if (selectedTab !== 2) return;
+    setArtLoading(true);
+    setArtError(null);
+    getMangaPictures(Number(mangaId))
+      .then((data) => setArtImages(data))
+      .catch(() => setArtError("Failed to load art images."))
+      .finally(() => setArtLoading(false));
+  }, [mangaId, selectedTab]);
 
   const chaptersByVolume = useMemo(() =>
     chapters.reduce((acc, chapter) => {
@@ -250,32 +273,80 @@ const MangaDetails: React.FC = () => {
               <h3 className="font-semibold">Score</h3>
               <p>{manga.score || "na"}/10</p>
             </div>
-            {/* Genres moved to above info section */}
           </div>
 
+          {/* Tabs */}
           <div className="mt-8">
-            <h2 className="text-2xl font-bold mb-4">Read Chapters</h2>
-            {loading ? (
-              <div>Loading chapters...</div>
-            ) : chapters.length > 0 ? (
-              <div className="space-y-6">
-                {Object.entries(chaptersByVolume)
-                  .sort(sortVolumes)
-                  .map(([volume, volumeChapters]) => (
-                    <VolumeSection
-                      key={volume}
-                      volume={volume}
-                      chapters={volumeChapters}
-                      mangaId={mangaId}
-                      navigate={navigate}
-                    />
-                  ))}
-              </div>
-            ) : (
-              <div className="text-gray-600">
-                No chapters have been uploaded yet.
-              </div>
-            )}
+            <div className="flex space-x-2 border-b mb-4">
+              {TABS.map((tab, idx) => (
+                <button
+                  key={tab.label}
+                  className={`px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-colors ${
+                    selectedTab === idx
+                      ? "border-indigo-600 text-indigo-700"
+                      : "border-transparent text-gray-500 hover:text-indigo-600"
+                  }`}
+                  onClick={() => setSelectedTab(idx)}
+                  type="button"
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div>
+              {selectedTab === 0 && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">Read Chapters</h2>
+                  {loading ? (
+                    <div>Loading chapters...</div>
+                  ) : chapters.length > 0 ? (
+                    <div className="space-y-6">
+                      {Object.entries(chaptersByVolume)
+                        .sort(sortVolumes)
+                        .map(([volume, volumeChapters]) => (
+                          <VolumeSection
+                            key={volume}
+                            volume={volume}
+                            chapters={volumeChapters}
+                            mangaId={mangaId}
+                            navigate={navigate}
+                          />
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-600">
+                      No chapters have been uploaded yet.
+                    </div>
+                  )}
+                </div>
+              )}
+              {selectedTab === 1 && (
+                <div className="text-gray-600">Comments section coming soon.</div>
+              )}
+              {selectedTab === 2 && (
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">Art</h2>
+                  {artLoading ? (
+                    <div>Loading art images...</div>
+                  ) : artError ? (
+                    <div className="text-red-500">{artError}</div>
+                  ) : artImages.length > 0 ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {artImages.map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img.jpg.image_url}
+                          alt={`Art ${idx + 1}`}
+                          className="w-full rounded shadow"
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-gray-600">No art images found.</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
