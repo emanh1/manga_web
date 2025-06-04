@@ -81,7 +81,7 @@ const TABS = [
 ];
 
 const CoverImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => (
-  <img src={src} alt={alt} className="w-40 md:w-56 rounded-lg shadow-lg" />
+  <img src={src} alt={alt} className="w-full h-auto md:w-56 rounded-lg shadow-lg" />
 );
 
 const TitleSection: React.FC<{ manga: TManga }> = ({ manga }) => {
@@ -349,64 +349,79 @@ const MangaDetails: React.FC = () => {
   if (error) return <div className="text-red-500">{error.message}</div>;
   if (!manga) return <div>Manga not found</div>;
 
+  const coverUrl = manga.images.jpg.large_image_url;
+
   return (
     <>
-      <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
-        <div className="flex flex-col md:flex-row gap-8 items-stretch">
-          <div className="md:w-1/4 w-full flex-shrink-0">
-            <CoverImage src={manga.images.jpg.large_image_url} alt={manga.title} />
-          </div>
-          <div className="flex-1 w-full">
-            <TitleSection manga={manga} />
-            <div className="mt-4">
-              <ActionButtons user={user} mangaId={mangaId} navigate={navigate} />
+      {/* Background */}
+      <div
+        className="fixed inset-0 w-full h-full z-0"
+        style={{
+          backgroundImage: `url(${coverUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          filter: 'blur(32px)',
+          opacity: 0.25,
+        }}
+        aria-hidden="true"
+      />
+      {/* Foreground */}
+      <div className="relative z-10">
+        <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
+          <div className="flex flex-col md:flex-row gap-8 items-stretch">
+            <CoverImage src={coverUrl} alt={manga.title} />
+            <div className="flex-1 w-full">
+              <TitleSection manga={manga} />
+              <div className="mt-4">
+                <ActionButtons user={user} mangaId={mangaId} navigate={navigate} />
+              </div>
+              <InfoBar manga={manga} />
             </div>
-            <InfoBar manga={manga} />
+          </div>
+          <div className="mt-6">
+            <Description synopsis={manga.synopsis} />
           </div>
         </div>
-        <div className="mt-6">
-          <Description synopsis={manga.synopsis} />
+        <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
+          <div className="flex space-x-2 border-b mb-4">
+            {TABS.map((tab, idx) => (
+              <button
+                key={tab.label}
+                className={`px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-colors ${
+                  selectedTab === idx
+                    ? "border-indigo-600 text-indigo-700"
+                    : "border-transparent text-gray-500 hover:text-indigo-600"
+                }`}
+                onClick={() => setSelectedTab(idx)}
+                type="button"
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-      <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
-        <div className="flex space-x-2 border-b mb-4">
-          {TABS.map((tab, idx) => (
-            <button
-              key={tab.label}
-              className={`px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-colors ${
-                selectedTab === idx
-                  ? "border-indigo-600 text-indigo-700"
-                  : "border-transparent text-gray-500 hover:text-indigo-600"
-              }`}
-              onClick={() => setSelectedTab(idx)}
-              type="button"
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-2 md:px-8">
-        <div className="flex flex-col justify-start items-start w-full">
-          {selectedTab === 0 && (
-            <TagsAndStatus manga={manga} />
-          )}
-        </div>
-        <div className="md:col-span-2 flex flex-col justify-start items-start w-full">
-          <div className="w-full">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-2 md:px-8">
+          <div className="flex flex-col justify-start items-start w-full">
             {selectedTab === 0 && (
-              <ChaptersTab
-                loading={loading}
-                chapters={chapters}
-                chaptersByVolume={chaptersByVolume}
-                mangaId={mangaId}
-                navigate={navigate}
-              />
+              <TagsAndStatus manga={manga} />
             )}
-            {selectedTab === 1 && <CommentsTab />}
-            {selectedTab === 2 && (
-              <ArtTab artLoading={artLoading} artError={artError} artImages={artImages} />
-            )}
+          </div>
+          <div className="md:col-span-2 flex flex-col justify-start items-start w-full">
+            <div className="w-full">
+              {selectedTab === 0 && (
+                <ChaptersTab
+                  loading={loading}
+                  chapters={chapters}
+                  chaptersByVolume={chaptersByVolume}
+                  mangaId={mangaId}
+                  navigate={navigate}
+                />
+              )}
+              {selectedTab === 1 && <CommentsTab />}
+              {selectedTab === 2 && (
+                <ArtTab artLoading={artLoading} artError={artError} artImages={artImages} />
+              )}
+            </div>
           </div>
         </div>
       </div>
