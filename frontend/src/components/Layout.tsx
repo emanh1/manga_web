@@ -71,10 +71,12 @@ const Layout: React.FC<Props> = ({ children }) => {
                       onClick={() => setMenuOpen(false)}
                     >My Profile</Link>
                     {user?.role === 'admin' && (
-                    <Link
-                      to="/admin/review"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >Review Uploads</Link>)}
+                        <Link
+                          to="/admin/dashboard"
+                          className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                          onClick={() => setMenuOpen(false)}
+                        >Admin Dashboard</Link>
+                    )}
                     <Link
                       to="/settings"
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
