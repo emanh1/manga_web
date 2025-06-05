@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { type TMangaChapter } from '../types/manga';
 
-export default function AdminReview() {
+export default function ReviewUploadsPanel() {
   const { token } = useAuth();
   const [uploads, setUploads] = useState<TMangaChapter[]>([]);
   const [isLoading, setIsLoading] = useState(true);

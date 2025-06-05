@@ -6,7 +6,6 @@ import Home from '../pages/Home';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import MangaUpload from '../pages/MangaUpload';
-import AdminReview from '../pages/AdminReview';
 import { Toaster } from 'react-hot-toast';
 import MangaDetails from '../components/MangaDetails';
 import Reader from '../components/reader/Reader';
@@ -15,6 +14,7 @@ import Profile from '../pages/Profile';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
 import Settings from '../pages/Settings';
+import AdminDashboard from '../pages/AdminDashboard';
 
 function App() {
   return (
@@ -49,10 +49,10 @@ function App() {
               } 
             />
             <Route 
-              path="/admin/review" 
+              path="/admin/dashboard" 
               element={
                 <ProtectedRoute adminOnly>
-                  <AdminReview />
+                  <AdminDashboard />
                 </ProtectedRoute>
               } 
             />
