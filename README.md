@@ -2,7 +2,6 @@
 
 ## Features 🚀
 - 🔍 **Search Titles**
-- 📖 **Read Titles**
 - ⬆️ **Upload Chapters w/ IPFS Integration**
 - 👤 **User Accounts**
 - 🛡️ **Admin Review**
