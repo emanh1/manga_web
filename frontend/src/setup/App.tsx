@@ -15,6 +15,7 @@ import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
 import Settings from '../pages/Settings';
 import AdminDashboard from '../pages/AdminDashboard';
+import AboutUs from '../pages/AboutUs';
 
 function App() {
   return (
@@ -70,14 +71,8 @@ function App() {
             />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:token" element={<ResetPassword />} />
-            <Route 
-              path="/settings" 
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="/settings" element={<Settings />} />
+            <Route path="/about" element={<AboutUs />} />
           </Routes>
         </Layout>
         <Toaster 

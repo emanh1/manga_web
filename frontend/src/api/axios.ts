@@ -1,17 +1,30 @@
 import axios from 'axios';
 import { retryOperation } from '../utils/retry';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+export function getbackendUrl() {
+  return localStorage.getItem('backendUrl') || import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+}
+
+export function setbackendUrl(url: string) {
+  localStorage.setItem('backendUrl', url);
+}
+
+const BACKEND_URL = getbackendUrl();
 
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 });
 
-// Request interceptor
+window.addEventListener('storage', (event) => {
+  if (event.key === 'backendUrl') {
+    axiosInstance.defaults.baseURL = getbackendUrl();
+  }
+});
+
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
