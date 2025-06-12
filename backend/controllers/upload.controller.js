@@ -76,7 +76,7 @@ export const uploadTitleChapter = async (req, res, next) => {
     const result = await UploadService.createChapterWithPages(req.body, ipfsResult);
 
     // Clean up local files
-    await cleanupFiles(uploadedFiles);
+    await cleanupFiles(files);
 
     const response = {
       message: result.fileErrors.length > 0 ? 'Upload completed with some errors' : 'Files uploaded successfully',
@@ -85,7 +85,7 @@ export const uploadTitleChapter = async (req, res, next) => {
 
     res.status(201).json(response);
   } catch (error) {
-    await cleanupFiles(uploadedFiles);
+    await cleanupFiles(req.files);
     if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json(formatSequelizeError(error));
     }
