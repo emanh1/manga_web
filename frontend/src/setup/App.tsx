@@ -5,9 +5,9 @@ import Layout from '../components/Layout';
 import Home from '../pages/Home';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
-import MangaUpload from '../pages/MangaUpload';
+import TitleUpload from '../pages/TitleUpload';
 import { Toaster } from 'react-hot-toast';
-import MangaDetails from '../components/MangaDetails';
+import TitleDetails from '../components/TitleDetails';
 import Reader from '../components/reader/Reader';
 import PreviewReader from '../components/PreviewReader';
 import Profile from '../pages/Profile';
@@ -24,17 +24,17 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/manga/:mangaId" element={<MangaDetails />} />
+            <Route path="/titles/:titleId" element={<TitleDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route 
-              path="/manga/:mangaId/:chapterId" 
+              path="/titles/:titleId/:chapterId" 
               element={
                   <Reader />
               }
             />
             <Route 
-              path="/manga/:mangaId/:chapterId/preview" 
+              path="/titles/:titleId/:chapterId/preview" 
               element={
                 <ProtectedRoute adminOnly>
                   <PreviewReader />
@@ -42,10 +42,10 @@ function App() {
               }
             />
             <Route 
-              path="/upload/:mangaId?" 
+              path="/upload/:titleId?" 
               element={
                 <ProtectedRoute>
-                  <MangaUpload />
+                  <TitleUpload />
                 </ProtectedRoute>
               } 
             />

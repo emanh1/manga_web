@@ -1,17 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
 import { retryOperation } from "./retry";
 import toast from "react-hot-toast";
-import type { TMangaChapter, TMangaPage } from "../types/manga";
+import type { TTitleChapter, TTitlePage } from "../types/titles";
 
 interface UseChapterReaderOptions {
-  mangaId?: string;
+  titleId?: string;
   chapterId?: string;
-  fetchChapterFn: (mangaId: string, chapterId: string) => Promise<TMangaChapter>;
+  fetchChapterFn: (titleId: string, chapterId: string) => Promise<TTitleChapter>;
 }
 
-export function useChapterReader({ mangaId, chapterId, fetchChapterFn }: UseChapterReaderOptions) {
-  const [chapter, setChapter] = useState<TMangaChapter | null>(null);
-  const [pages, setPages] = useState<TMangaPage[]>([]);
+export function useChapterReader({ titleId, chapterId, fetchChapterFn }: UseChapterReaderOptions) {
+  const [chapter, setChapter] = useState<TTitleChapter | null>(null);
+  const [pages, setPages] = useState<TTitlePage[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -24,11 +24,11 @@ export function useChapterReader({ mangaId, chapterId, fetchChapterFn }: UseChap
   }, [currentPage]);
 
   const fetchChapter = async () => {
-    if (!mangaId || !chapterId) return;
+    if (!titleId || !chapterId) return;
     setLoading(true);
     try {
       const response = await retryOperation(
-        () => fetchChapterFn(mangaId, chapterId),
+        () => fetchChapterFn(titleId, chapterId),
         3,
         1000
       );
@@ -44,7 +44,7 @@ export function useChapterReader({ mangaId, chapterId, fetchChapterFn }: UseChap
 
   useEffect(() => {
     fetchChapter();
-  }, [mangaId, chapterId, fetchChapterFn]);
+  }, [titleId, chapterId, fetchChapterFn]);
 
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { setupCache } from 'axios-cache-interceptor';
-import type { TManga, TMangaRecommendation } from "../types/manga";
+import type { TTitle, TTitleRecommendation } from "../types/titles";
 import { axiosWithRetry } from "./axios";
 
 const BASE_URL = "https://api.jikan.moe/v4";
@@ -15,7 +15,7 @@ const api = setupCache(axios.create({ baseURL: BASE_URL }), {
   },
 });
 
-export const searchManga = async (query: string, limit = 10): Promise<TManga[]> => {
+export const searchTitle = async (query: string, limit = 10): Promise<TTitle[]> => {
   return axiosWithRetry(async () => {
     const response = await api.get('/manga', {
       params: { q: query, limit: limit },
@@ -24,7 +24,7 @@ export const searchManga = async (query: string, limit = 10): Promise<TManga[]> 
   });
 };
 
-export const getTopManga = async (limit = 20): Promise<TManga[]> => {
+export const getTopTitle = async (limit = 20): Promise<TTitle[]> => {
   return axiosWithRetry(async () => {
     const response = await api.get('/top/manga', {
       params: { limit },
@@ -33,28 +33,28 @@ export const getTopManga = async (limit = 20): Promise<TManga[]> => {
   });
 };
 
-export const getMangaDetails = async (id: number): Promise<TManga> => {
+export const getTitleDetails = async (id: number): Promise<TTitle> => {
   return axiosWithRetry(async () => {
     const response = await api.get(`/manga/${id}/full`);
     return response.data.data;
   });
 };
 
-export const getMangaRecommendations = async (limit = 20): Promise<TMangaRecommendation[]> => {
+export const getTitleRecommendations = async (limit = 20): Promise<TTitleRecommendation[]> => {
   return axiosWithRetry(async () => {
     const response = await api.get('/recommendations/manga');
     return response.data.data.slice(0, limit);
   });
 };
 
-export const getRandomManga = async (): Promise<TManga> => {
+export const getRandomTitle = async (): Promise<TTitle> => {
   return axiosWithRetry(async () => {
     const response = await api.get('/random/manga');
     return response.data.data;
   });
 };
 
-export const getMangaPictures = async (id: number) => {
+export const getTitlePictures = async (id: number) => {
   return axiosWithRetry(async () => {
     const response = await api.get(`/manga/${id}/pictures`);
     return response.data.data;

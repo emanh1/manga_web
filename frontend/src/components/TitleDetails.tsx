@@ -1,33 +1,33 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import type { TMangaChapter, TMALEntity, TManga } from "../types/manga";
+import type { TTitleChapter, TMALEntity, TTitle } from "../types/titles";
 import toast from 'react-hot-toast';
 import { useAuth } from "../contexts/AuthContext";
 import { uploadAPI } from "../api/axios";
-import { useMangaDetails } from "../hooks/useMangaDetails";
+import { useTitleDetails } from "../hooks/useTitleDetails";
 import { formatDistanceToNow } from 'date-fns';
 import { FaClock, FaEye, FaUser, FaStar, FaUpload, FaPlus } from 'react-icons/fa';
-import { getMangaPictures } from "../api/jikan";
-import type { TMangaPicture } from "../types/mangaPictures";
+import { getTitlePictures } from "../api/jikan";
+import type { TTitlePicture } from "../types/titlePictures";
 
-function sortVolumes(a: [string | number, TMangaChapter[]], b: [string | number, TMangaChapter[]]) {
+function sortVolumes(a: [string | number, TTitleChapter[]], b: [string | number, TTitleChapter[]]) {
   if (a[0] === 'Other') return -1;
   if (b[0] === 'Other') return 1;
   return Number(b[0]) - Number(a[0]);
 }
 
-function sortChaptersDesc(a: TMangaChapter, b: TMangaChapter) {
+function sortChaptersDesc(a: TTitleChapter, b: TTitleChapter) {
   return (b.chapterNumber ?? 0) - (a.chapterNumber ?? 0);
 }
 
 const ChapterListItem: React.FC<{
-  chapter: TMangaChapter;
-  mangaId: string | undefined;
+  chapter: TTitleChapter;
+  titleId: string | undefined;
   navigate: ReturnType<typeof useNavigate>;
-}> = ({ chapter, mangaId, navigate }) => (
+}> = ({ chapter, titleId, navigate }) => (
   <li
     key={chapter.chapterId}
-    onClick={() => navigate(`/manga/${mangaId}/${chapter.chapterId}`)}
+    onClick={() => navigate(`/titles/${titleId}/${chapter.chapterId}`)}
     className="py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-4"
   >
     <div className="flex-1 min-w-0">
@@ -58,17 +58,17 @@ const ChapterListItem: React.FC<{
 
 const VolumeSection: React.FC<{
   volume: string | number;
-  chapters: TMangaChapter[];
-  mangaId: string | undefined;
+  chapters: TTitleChapter[];
+  titleId: string | undefined;
   navigate: ReturnType<typeof useNavigate>;
-}> = ({ volume, chapters, mangaId, navigate }) => (
+}> = ({ volume, chapters, titleId, navigate }) => (
   <div className="bg-white rounded-lg shadow p-4">
     <h3 className="text-lg font-semibold mb-3">
       {volume === 'Other' ? 'No volume' : `Volume ${volume}`}
     </h3>
     <ul className="divide-y divide-gray-200">
       {chapters.sort(sortChaptersDesc).map((chapter) => (
-        <ChapterListItem key={chapter.chapterId} chapter={chapter} mangaId={mangaId} navigate={navigate} />
+        <ChapterListItem key={chapter.chapterId} chapter={chapter} titleId={titleId} navigate={navigate} />
       ))}
     </ul>
   </div>
@@ -84,15 +84,15 @@ const CoverImage: React.FC<{ src: string; alt: string }> = ({ src, alt }) => (
   <img src={src} alt={alt} className="w-full h-auto md:w-56 rounded-lg shadow-lg" />
 );
 
-const TitleSection: React.FC<{ manga: TManga }> = ({ manga }) => {
-  const title = manga.title?.trim() || "";
-  const titleEnglish = manga.title_english?.trim() || "";
-  const titleJapanese = manga.title_japanese?.trim() || "";
-  const showEnglish = titleEnglish && (title.toLowerCase() !== titleEnglish.toLowerCase());
+const TitleSection: React.FC<{ title: TTitle }> = ({ title }) => {
+  const title_main = title.title?.trim() || "";
+  const titleEnglish = title.title_english?.trim() || "";
+  const titleJapanese = title.title_japanese?.trim() || "";
+  const showEnglish = titleEnglish && (title_main.toLowerCase() !== titleEnglish.toLowerCase());
 
   return (
     <div>
-      <h1 className="text-7xl font-bold">{title}</h1>
+      <h1 className="text-7xl font-bold">{title_main}</h1>
       {showEnglish ? (
         <div className="text-base text-gray-500 mt-1">{titleEnglish}</div>
       ) : titleJapanese && (
@@ -103,7 +103,7 @@ const TitleSection: React.FC<{ manga: TManga }> = ({ manga }) => {
 };
 
 //TODO implement library management and rating functionality
-const ActionButtons: React.FC<{ user: any; mangaId: string | undefined; navigate: ReturnType<typeof useNavigate> }> = ({ user, mangaId, navigate }) => (
+const ActionButtons: React.FC<{ user: any; titleId: string | undefined; navigate: ReturnType<typeof useNavigate> }> = ({ user, titleId, navigate }) => (
   <div className="flex flex-row gap-3 items-center mt-2">
     <button
       className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors text-sm font-medium"
@@ -119,7 +119,7 @@ const ActionButtons: React.FC<{ user: any; mangaId: string | undefined; navigate
     </button>
     {user && (
       <button
-        onClick={() => navigate(`/upload/${mangaId}`)}
+        onClick={() => navigate(`/upload/${titleId}`)}
         className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
         type="button"
       >
@@ -129,23 +129,23 @@ const ActionButtons: React.FC<{ user: any; mangaId: string | undefined; navigate
   </div>
 );
 
-const TagsAndStatus: React.FC<{ manga: any }> = ({ manga }) => (
+const TagsAndStatus: React.FC<{ title: any }> = ({ title }) => (
   <div className="mb-6 space-y-2">
     {/* Serializations */}
-    {manga.serializations.length > 0 && (
+    {title.serializations.length > 0 && (
       <div className="flex flex-wrap gap-2 items-center">
         <span className="font-semibold">Serialization:</span>
-        {manga.serializations.map((s: TMALEntity) => (
+        {title.serializations.map((s: TMALEntity) => (
           <span key={s.mal_id} className="inline-block text-xs bg-yellow-100 text-yellow-800 rounded px-2 py-0.5 mr-1">{s.name}</span>
         ))}
       </div>
     )}
     <div className="flex flex-wrap gap-2 items-center">
       <span className="font-semibold">Authors:</span>
-      {manga.authors.length > 0 ? (
-        manga.authors.map((a: TMALEntity, i: number) => (
+      {title.authors.length > 0 ? (
+        title.authors.map((a: TMALEntity, i: number) => (
           <span key={a.mal_id} className="inline-block text-sm bg-gray-200 rounded px-2 py-0.5 mr-1">
-            {a.name}{i < manga.authors.length - 1 ? ',' : ''}
+            {a.name}{i < title.authors.length - 1 ? ',' : ''}
           </span>
         ))
       ) : (
@@ -154,8 +154,8 @@ const TagsAndStatus: React.FC<{ manga: any }> = ({ manga }) => (
     </div>
     <div className="flex flex-wrap gap-2 items-center">
       <span className="font-semibold">Demographic:</span>
-      {manga.demographics.length > 0 ? (
-        manga.demographics.map((d: TMALEntity) => (
+      {title.demographics.length > 0 ? (
+        title.demographics.map((d: TMALEntity) => (
           <span key={d.mal_id} className="inline-block text-xs bg-green-100 text-green-800 rounded px-2 py-0.5 mr-1">
             {d.name}
           </span>
@@ -166,8 +166,8 @@ const TagsAndStatus: React.FC<{ manga: any }> = ({ manga }) => (
     </div>
     <div className="flex flex-wrap gap-2 items-center">
       <span className="font-semibold">Genres:</span>
-      {manga.genres.length > 0 ? (
-        manga.genres.map((g: TMALEntity) => (
+      {title.genres.length > 0 ? (
+        title.genres.map((g: TMALEntity) => (
           <span key={g.mal_id} className="inline-block text-xs bg-gray-200 text-gray-800 rounded px-2 py-0.5 mr-1">
             {g.name}
           </span>
@@ -178,8 +178,8 @@ const TagsAndStatus: React.FC<{ manga: any }> = ({ manga }) => (
     </div>
     <div className="flex flex-wrap gap-2 items-center">
       <span className="font-semibold">Explicit Genres:</span>
-      {manga.explicit_genres.length > 0 ? (
-        manga.explicit_genres.map((g: TMALEntity) => (
+      {title.explicit_genres.length > 0 ? (
+        title.explicit_genres.map((g: TMALEntity) => (
           <span key={g.mal_id} className="inline-block text-xs bg-red-200 text-red-800 rounded px-2 py-0.5 mr-1">
             {g.name}
           </span>
@@ -190,8 +190,8 @@ const TagsAndStatus: React.FC<{ manga: any }> = ({ manga }) => (
     </div>
     <div className="flex flex-wrap gap-2 items-center">
       <span className="font-semibold">Themes:</span>
-      {manga.themes.length > 0 ? (
-        manga.themes.map((t: TMALEntity) => (
+      {title.themes.length > 0 ? (
+        title.themes.map((t: TMALEntity) => (
           <span key={t.mal_id} className="inline-block text-xs bg-purple-100 text-purple-800 rounded px-2 py-0.5 mr-1">
             {t.name}
           </span>
@@ -207,10 +207,10 @@ const Description: React.FC<{ synopsis?: string }> = ({ synopsis }) => (
   <p className="text-gray-600 mb-4">{synopsis || "No synopsis found"}</p>
 );
 
-const InfoBar: React.FC<{ manga: any }> = ({ manga }) => (
+const InfoBar: React.FC<{ title: any }> = ({ title }) => (
   <div className="flex flex-wrap gap-2 items-center mt-4">
-      {manga.genres.length > 0 ? (
-        manga.genres.map((g: TMALEntity) => (
+      {title.genres.length > 0 ? (
+        title.genres.map((g: TMALEntity) => (
           <span key={g.mal_id} className="inline-block text-xs bg-gray-200 text-gray-800 rounded px-2 py-0.5 mr-1">
             {g.name}
           </span>
@@ -218,8 +218,8 @@ const InfoBar: React.FC<{ manga: any }> = ({ manga }) => (
       ) : (
         <span className="text-gray-500">-</span>
       )}
-      {manga.themes.length > 0 ? (
-        manga.themes.map((t: TMALEntity) => (
+      {title.themes.length > 0 ? (
+        title.themes.map((t: TMALEntity) => (
           <span key={t.mal_id} className="inline-block text-xs bg-purple-100 text-purple-800 rounded px-2 py-0.5 mr-1">
             {t.name}
           </span>
@@ -231,20 +231,20 @@ const InfoBar: React.FC<{ manga: any }> = ({ manga }) => (
       <span className="font-semibold">Publication:</span>
       <span className="flex items-center gap-1">
         <span
-          className={`inline-block w-3 h-3 rounded-full ${manga.status === 'Publishing' ? 'bg-green-500' : 'bg-blue-400'}`}
+          className={`inline-block w-3 h-3 rounded-full ${title.status === 'Publishing' ? 'bg-green-500' : 'bg-blue-400'}`}
         ></span>
-        <span className="text-xs text-gray-700">{manga.status}</span>
+        <span className="text-xs text-gray-700">{title.status}</span>
       </span>
   </div>
 );
 
 const ChaptersTab: React.FC<{
   loading: boolean;
-  chapters: TMangaChapter[];
-  chaptersByVolume: Record<string | number, TMangaChapter[]>;
-  mangaId: string | undefined;
+  chapters: TTitleChapter[];
+  chaptersByVolume: Record<string | number, TTitleChapter[]>;
+  titleId: string | undefined;
   navigate: ReturnType<typeof useNavigate>;
-}> = ({ loading, chapters, chaptersByVolume, mangaId, navigate }) => (
+}> = ({ loading, chapters, chaptersByVolume, titleId, navigate }) => (
   <div>
     {loading ? (
       <div>Loading chapters...</div>
@@ -257,7 +257,7 @@ const ChaptersTab: React.FC<{
               key={volume}
               volume={volume}
               chapters={volumeChapters}
-              mangaId={mangaId}
+              titleId={titleId}
               navigate={navigate}
             />
           ))}
@@ -277,7 +277,7 @@ const CommentsTab: React.FC = () => (
 const ArtTab: React.FC<{
   artLoading: boolean;
   artError: string | null;
-  artImages: TMangaPicture[];
+  artImages: TTitlePicture[];
 }> = ({ artLoading, artError, artImages }) => (
   <div>
     <h2 className="text-2xl font-bold mb-4">Art</h2>
@@ -302,40 +302,40 @@ const ArtTab: React.FC<{
   </div>
 );
 
-const MangaDetails: React.FC = () => {
-  const { mangaId } = useParams();
+const TitleDetails: React.FC = () => {
+  const { titleId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { manga, loading: mangaLoading, error } = useMangaDetails(mangaId);
-  const [chapters, setChapters] = useState<TMangaChapter[]>([]);
+  const { title, loading: titleLoading, error } = useTitleDetails(titleId);
+  const [chapters, setChapters] = useState<TTitleChapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState(0);
-  const [artImages, setArtImages] = useState<TMangaPicture[]>([]);
+  const [artImages, setArtImages] = useState<TTitlePicture[]>([]);
   const [artLoading, setArtLoading] = useState(false);
   const [artError, setArtError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!mangaId) return;
+    if (!titleId) return;
     setLoading(true);
-    uploadAPI.getChapters(mangaId)
+    uploadAPI.getChapters(titleId)
       .then((chaptersData) => setChapters(chaptersData.chapters))
       .catch(() => {
         toast.error('Failed to load chapters');
         setChapters([]);
       })
       .finally(() => setLoading(false));
-  }, [mangaId]);
+  }, [titleId]);
 
   useEffect(() => {
-    if (!mangaId) return;
+    if (!titleId) return;
     if (selectedTab !== 2) return;
     setArtLoading(true);
     setArtError(null);
-    getMangaPictures(Number(mangaId))
+    getTitlePictures(Number(titleId))
       .then((data) => setArtImages(data))
       .catch(() => setArtError("Failed to load art images."))
       .finally(() => setArtLoading(false));
-  }, [mangaId, selectedTab]);
+  }, [titleId, selectedTab]);
 
   const chaptersByVolume = useMemo(() =>
     chapters.reduce((acc, chapter) => {
@@ -343,13 +343,13 @@ const MangaDetails: React.FC = () => {
       if (!acc[volume]) acc[volume] = [];
       acc[volume].push(chapter);
       return acc;
-    }, {} as Record<string | number, TMangaChapter[]>), [chapters]);
+    }, {} as Record<string | number, TTitleChapter[]>), [chapters]);
 
-  if (mangaLoading || loading) return <div>Loading...</div>;
+  if (titleLoading || loading) return <div>Loading...</div>;
   if (error) return <div className="text-red-500">{error.message}</div>;
-  if (!manga) return <div>Manga not found</div>;
+  if (!title) return <div>Title not found</div>;
 
-  const coverUrl = manga.images.jpg.large_image_url;
+  const coverUrl = title.images.jpg.large_image_url;
 
   return (
     <>
@@ -369,17 +369,17 @@ const MangaDetails: React.FC = () => {
       <div className="relative z-10">
         <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
           <div className="flex flex-col md:flex-row gap-8 items-stretch">
-            <CoverImage src={coverUrl} alt={manga.title} />
+            <CoverImage src={coverUrl} alt={title.title} />
             <div className="flex-1 w-full">
-              <TitleSection manga={manga} />
+              <TitleSection title={title} />
               <div className="mt-4">
-                <ActionButtons user={user} mangaId={mangaId} navigate={navigate} />
+                <ActionButtons user={user} titleId={titleId} navigate={navigate} />
               </div>
-              <InfoBar manga={manga} />
+              <InfoBar title={title} />
             </div>
           </div>
           <div className="mt-6">
-            <Description synopsis={manga.synopsis} />
+            <Description synopsis={title.synopsis} />
           </div>
         </div>
         <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
@@ -403,7 +403,7 @@ const MangaDetails: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-2 md:px-8">
           <div className="flex flex-col justify-start items-start w-full">
             {selectedTab === 0 && (
-              <TagsAndStatus manga={manga} />
+              <TagsAndStatus title={title} />
             )}
           </div>
           <div className="md:col-span-2 flex flex-col justify-start items-start w-full">
@@ -413,7 +413,7 @@ const MangaDetails: React.FC = () => {
                   loading={loading}
                   chapters={chapters}
                   chaptersByVolume={chaptersByVolume}
-                  mangaId={mangaId}
+                  titleId={titleId}
                   navigate={navigate}
                 />
               )}
@@ -430,4 +430,4 @@ const MangaDetails: React.FC = () => {
 };
 
 
-export default MangaDetails;
+export default TitleDetails;

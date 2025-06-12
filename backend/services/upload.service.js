@@ -38,7 +38,7 @@ class UploadService {
     return { cids, fileErrors, uploadedFiles };
   }
 
-  static async createMangaUpload(uploadData, files, userId) {
+  static async createTitleUpload(uploadData, files, userId) {
     let { title, malId, volume, chapterNumber, chapterTitle, language, isOneshot } = uploadData;
 
     if (isOneshot === true || isOneshot === 'true') {
@@ -61,7 +61,7 @@ class UploadService {
         uploaderId: userId,
         chapterId: commonChapterId
       };
-      return db.MangaUpload.create(uploadDataObj);
+      return db.TitleUpload.create(uploadDataObj);
     }));
 
     return {
@@ -91,16 +91,16 @@ class UploadService {
     };
   }
 
-  static async _getChapterByStatus(mangaId, chapterId, statuses) {
+  static async _getChapterByStatus(titleId, chapterId, statuses) {
     const whereStatus = { [Op.in]: statuses };
-    await db.MangaUpload.increment('viewCount', {
+    await db.TitleUpload.increment('viewCount', {
       by: 1,
-      where: { chapterId, malId: mangaId }
+      where: { chapterId, malId: titleId }
     });
-    const pages = await db.MangaUpload.findAll({
+    const pages = await db.TitleUpload.findAll({
       where: {
         chapterId,
-        malId: mangaId,
+        malId: titleId,
         status: whereStatus
       },
       include: [{
@@ -116,17 +116,17 @@ class UploadService {
     return this._formatChapterResult(pages);
   }
 
-  static async getChapterInfo(mangaId, chapterId) {
-    return this._getChapterByStatus(mangaId, chapterId, ['approved']);
+  static async getChapterInfo(titleId, chapterId) {
+    return this._getChapterByStatus(titleId, chapterId, ['approved']);
   }
 
-  static async getChapterInfoPreview(mangaId, chapterId) {
-    return this._getChapterByStatus(mangaId, chapterId, ['pending', 'rejected']);
+  static async getChapterInfoPreview(titleId, chapterId) {
+    return this._getChapterByStatus(titleId, chapterId, ['pending', 'rejected']);
   }
 
-  static async findUploadsByChapter(mangaId, chapterId) {
-    const pages = await db.MangaUpload.findAll({
-      where: { malId: mangaId, chapterId },
+  static async findUploadsByChapter(titleId, chapterId) {
+    const pages = await db.TitleUpload.findAll({
+      where: { malId: titleId, chapterId },
       include: [{
         model: db.User,
         as: 'uploader',
@@ -137,10 +137,10 @@ class UploadService {
     return this._formatChapterResult(pages);
   }
 
-  static async getChapters(mangaId) {
-    const chapters = await db.MangaUpload.findAll({
+  static async getChapters(titleId) {
+    const chapters = await db.TitleUpload.findAll({
       where: {
-        malId: mangaId,
+        malId: titleId,
         status: 'approved'
       },
       attributes: [
@@ -151,7 +151,7 @@ class UploadService {
         'language',
         'isOneshot',
         'viewCount',
-        [db.Sequelize.fn('MIN', db.Sequelize.col('MangaUpload.createdAt')), 'uploadedAt']
+        [db.Sequelize.fn('MIN', db.Sequelize.col('TitleUpload.createdAt')), 'uploadedAt']
       ],
       include: [{
         model: db.User,
@@ -208,7 +208,7 @@ class UploadService {
   }
 
   static async getAllPendingChapters() {
-    const uploads = await db.MangaUpload.findAll({
+    const uploads = await db.TitleUpload.findAll({
       where: { status: 'pending' },
       include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
       order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
@@ -217,7 +217,7 @@ class UploadService {
   }
 
   static async getAllRejectedChapters() {
-    const uploads = await db.MangaUpload.findAll({
+    const uploads = await db.TitleUpload.findAll({
       where: { status: 'rejected' },
       include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
       order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
@@ -226,7 +226,7 @@ class UploadService {
   }
 
   static async reviewChapter(id, status, rejectionReason = null) {
-    const upload = await db.MangaUpload.findByPk(id);
+    const upload = await db.TitleUpload.findByPk(id);
     if (!upload) throw new AppError('Upload not found', 404);
     upload.status = status;
     upload.rejectionReason = status === 'rejected' ? rejectionReason : null;

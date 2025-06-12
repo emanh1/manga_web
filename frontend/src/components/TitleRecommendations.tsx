@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { getMangaRecommendations } from "../api/jikan";
-import type { TMangaRecommendation } from "../types/manga";
+import { getTitleRecommendations } from "../api/jikan";
+import type { TTitleRecommendation } from "../types/titles";
 import { RecommendationCard } from "./RecommendationCard";
-import MangaCardSection from "./MangaCardSection";
+import TitleCardSection from "./TitleCardSection";
 
-const MangaRecommendations: React.FC = () => {
-  const [recommendations, setRecommendations] = useState<TMangaRecommendation[]>([]);
+const TitleRecommendations: React.FC = () => {
+  const [recommendations, setRecommendations] = useState<TTitleRecommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -13,7 +13,7 @@ const MangaRecommendations: React.FC = () => {
     async function fetchRecommendations() {
       setLoading(true);
       try {
-        const data = await getMangaRecommendations(10);
+        const data = await getTitleRecommendations(10);
         setRecommendations(data);
       } catch (error) {
         console.error("Error fetching recommendations:", error);
@@ -27,7 +27,7 @@ const MangaRecommendations: React.FC = () => {
   if (loading) return <p>Loading recommendations...</p>;
 
   return (
-    <MangaCardSection title="Recommended Manga" scrollAmount={1250}>
+    <TitleCardSection title="Recommended Titles" scrollAmount={1250}>
       {recommendations.map((rec) => (
         <div className="w-[600px] flex-shrink-0" key={rec.mal_id}>
           <RecommendationCard
@@ -37,8 +37,8 @@ const MangaRecommendations: React.FC = () => {
           />
         </div>
       ))}
-    </MangaCardSection>
+    </TitleCardSection>
   );
 };
 
-export default MangaRecommendations;
+export default TitleRecommendations;

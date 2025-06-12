@@ -58,7 +58,7 @@ function formatSequelizeError(error) {
   };
 }
 
-export const uploadMangaChapter = async (req, res, next) => {
+export const uploadTitleChapter = async (req, res, next) => {
   const uploadedFiles = [];
   try {
     const files = req.files;
@@ -73,7 +73,7 @@ export const uploadMangaChapter = async (req, res, next) => {
     uploadedFiles.push(...ipfsResult.uploadedFiles);
 
     // Create manga upload records
-    const result = await UploadService.createMangaUpload(req.body, ipfsResult, req.user.uuid);
+    const result = await UploadService.createTitleUpload(req.body, ipfsResult, req.user.uuid);
 
     // Clean up local files
     await cleanupFiles(uploadedFiles);
@@ -95,8 +95,8 @@ export const uploadMangaChapter = async (req, res, next) => {
 
 export const getChapter = async (req, res, next) => {
   try {
-    const { mangaId, chapterId } = req.params;
-    const chapterInfo = await UploadService.getChapterInfo(mangaId, chapterId);
+    const { titleId, chapterId } = req.params;
+    const chapterInfo = await UploadService.getChapterInfo(titleId, chapterId);
     res.json(chapterInfo);
   } catch (error) {
     next(new AppError(error.message, error.message.includes('not found') ? 404 : 500));
@@ -105,8 +105,8 @@ export const getChapter = async (req, res, next) => {
 
 export const getChapters = async (req, res, next) => {
   try {
-    const { mangaId } = req.params;
-    const chapters = await UploadService.getChapters(mangaId);
+    const { titleId } = req.params;
+    const chapters = await UploadService.getChapters(titleId);
     res.json({ chapters });
   } catch (error) {
     next(new AppError(error.message, 500));
@@ -147,8 +147,8 @@ export const reviewChapter = async (req, res, next) => {
 
 export const previewChapter = async (req, res, next) => {
   try {
-    const { mangaId, chapterId } = req.params;
-    const chapterInfo = await UploadService.getChapterInfoPreview(mangaId, chapterId);
+    const { titleId, chapterId } = req.params;
+    const chapterInfo = await UploadService.getChapterInfoPreview(titleId, chapterId);
     res.json(chapterInfo);
   } catch (error) {
     next(new AppError(error.message, 500));

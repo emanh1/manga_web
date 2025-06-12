@@ -7,7 +7,7 @@ export interface TMALEntity {
   url: string;
 }
 
-export interface TManga {
+export interface TTitle {
   mal_id: number;
   url: string;
   images: {
@@ -52,9 +52,9 @@ export interface TManga {
   demographics: TMALEntity[];
 };
 
-export interface TMangaRecommendation {
+export interface TTitleRecommendation {
   mal_id: string;
-  entry: TManga[];
+  entry: TTitle[];
   content: string;
   user: {
     url: string;
@@ -62,13 +62,13 @@ export interface TMangaRecommendation {
   };
 }
 
-export interface TMangaPage {
+export interface TTitlePage {
   id: number;
   fileOrder: number;
   filePath: string;
 }
 
-export interface TMangaChapter {
+export interface TTitleChapter {
   chapterId: string;
   malId: number | null;
   volume: number | null;
@@ -81,6 +81,6 @@ export interface TMangaChapter {
   uploader: User; 
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
-  pages: TMangaPage[];
+  pages: TTitlePage[];
   viewCount: number; 
 }

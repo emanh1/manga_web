@@ -71,39 +71,39 @@ export const authAPI = {
 
 export const uploadAPI = {
   uploadChapter: async (formData: FormData) => {
-    const response = await axiosInstance.post('/manga/upload', formData, {
+    const response = await axiosInstance.post('/titles/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
     return response.data;
   },
-  getChapter: async (mangaId: string, chapterId: string) => {
-    const response = await axiosInstance.get(`/manga/${mangaId}/${chapterId}`);
+  getChapter: async (titleId: string, chapterId: string) => {
+    const response = await axiosInstance.get(`/titles/${titleId}/${chapterId}`);
     return response.data;
   },
-  getChapters: async (mangaId: string) => {
-    const response = await axiosInstance.get(`/manga/${mangaId}/chapters`);
+  getChapters: async (titleId: string) => {
+    const response = await axiosInstance.get(`/titles/${titleId}/chapters`);
     return response.data;
   },
   getAllPendingChapters: async () => {
-    const response = await axiosInstance.get('/manga/admin/pending');
+    const response = await axiosInstance.get('/titles/admin/pending');
     return response.data;
   },
   getAllRejectedChapters: async () => {
-    const response = await axiosInstance.get('/manga/admin/rejected');
+    const response = await axiosInstance.get('/titles/admin/rejected');
     return response.data;
   },
   reviewChapter: async (id: number, status: 'approved' | 'rejected', rejectionReason?: string, token?: string) => {
     const response = await axiosInstance.post(
-      `/manga/admin/review/${id}`,
+      `/titles/admin/review/${id}`,
       { status, rejectionReason },
       token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
     );
     return response.data;
   },
-  previewChapter: async (mangaId: string, chapterId: string) => {
-    const response = await axiosInstance.get(`/manga/${mangaId}/${chapterId}/preview`);
+  previewChapter: async (titleId: string, chapterId: string) => {
+    const response = await axiosInstance.get(`/titles/${titleId}/${chapterId}/preview`);
     return response.data;
   }
 };
