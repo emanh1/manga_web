@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { retryOperation } from "./retry";
-import toast from "react-hot-toast";
+import { toastUtil } from "../components/toast";
 import type { TTitleChapter, TTitlePage } from "../types/titles";
 
 interface UseChapterReaderOptions {
@@ -36,7 +36,7 @@ export function useChapterReader({ titleId, chapterId, fetchChapterFn }: UseChap
       setPages(response.pages ?? []);
       setCurrentPage(0);
     } catch {
-      toast.error("Failed to load chapter after multiple attempts");
+      toastUtil.error("Failed to load chapter after multiple attempts");
     } finally {
       setLoading(false);
     }
