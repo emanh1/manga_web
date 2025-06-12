@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosRequestConfig } from 'axios';
 import { retryOperation } from '../utils/retry';
 
 export function getbackendUrl() {
@@ -70,14 +70,22 @@ export const authAPI = {
 };
 
 export const uploadAPI = {
-  uploadChapter: async (formData: FormData) => {
-    const response = await axiosInstance.post('/titles/upload', formData, {
+  uploadChapter: async (
+    formData: FormData,
+    onUploadProgress?: AxiosRequestConfig['onUploadProgress']
+  ) => {
+    const response = await axiosInstance.post('/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
+      onUploadProgress,
     });
     return response.data;
-  },
+  }
+};
+
+
+export const titleAPI = {
   getChapter: async (titleId: string, chapterId: string) => {
     const response = await axiosInstance.get(`/titles/${titleId}/${chapterId}`);
     return response.data;
@@ -87,16 +95,16 @@ export const uploadAPI = {
     return response.data;
   },
   getAllPendingChapters: async () => {
-    const response = await axiosInstance.get('/titles/admin/pending');
+    const response = await axiosInstance.get('/titles/pending_chapters');
     return response.data;
   },
   getAllRejectedChapters: async () => {
-    const response = await axiosInstance.get('/titles/admin/rejected');
+    const response = await axiosInstance.get('/titles/rejected_chapters');
     return response.data;
   },
-  reviewChapter: async (id: string, status: 'approved' | 'rejected', rejectionReason?: string, token?: string) => {
+  reviewChapter: async (chapterId: string, status: 'approved' | 'rejected', rejectionReason?: string, token?: string) => {
     const response = await axiosInstance.post(
-      `/titles/admin/review/${id}`,
+      `/titles/review_chapter/${chapterId}`,
       { status, rejectionReason },
       token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
     );

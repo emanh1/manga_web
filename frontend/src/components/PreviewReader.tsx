@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams } from "react-router-dom";
-import { uploadAPI } from "../api/axios";
+import { titleAPI } from "../api/axios";
 import { useChapterReader } from "../utils/useChapterReader";
 import { toastUtil } from './toast';
 import { useIPFSGateway } from '../contexts/IPFSGatewayContext';
@@ -26,7 +26,7 @@ const PreviewReader: React.FC = () => {
   } = useChapterReader({
     titleId,
     chapterId,
-    fetchChapterFn: uploadAPI.previewChapter,
+    fetchChapterFn: titleAPI.previewChapter,
   });
   const [imgLoading, setImgLoading] = React.useState(true);
   const [imgKey, setImgKey] = React.useState(0);

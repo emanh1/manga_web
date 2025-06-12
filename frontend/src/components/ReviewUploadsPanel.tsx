@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { uploadAPI } from '../api/axios';
+import { titleAPI } from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { toastUtil } from './toast';
 import type { TTitle, TTitleChapter } from '../types/titles';
@@ -48,7 +48,7 @@ export default function ReviewUploadsPanel() {
   const fetchPendingChapters = async () => {
     setIsLoading(true);
     try {
-      const response = await uploadAPI.getAllPendingChapters();
+      const response = await titleAPI.getAllPendingChapters();
       setUploads(response.chapters || []);
     } catch {
       toastUtil.error('Failed to fetch pending chapters');
@@ -61,7 +61,7 @@ export default function ReviewUploadsPanel() {
   const fetchRejectedChapters = async () => {
     setIsLoading(true);
     try {
-      const response = await uploadAPI.getAllRejectedChapters();
+      const response = await titleAPI.getAllRejectedChapters();
       setUploads(response.chapters || []);
     } catch {
       toastUtil.error('Failed to fetch rejected chapters');
@@ -77,7 +77,7 @@ export default function ReviewUploadsPanel() {
     reason?: string
   ) => {
     try {
-      await uploadAPI.reviewChapter(chapterId, status, reason, token || undefined);
+      await titleAPI.reviewChapter(chapterId, status, reason, token || undefined);
       toastUtil.success('Review submitted successfully');
       if (view === 'pending') fetchPendingChapters();
       else fetchRejectedChapters();

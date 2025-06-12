@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useTitleDetails } from '../hooks/useTitleDetails';
 import { toastUtil } from '../components/toast';
 import FileUploadManager from '../components/FileUploadManager';
-import axiosInstance from '../api/axios';
+import { uploadAPI } from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 
 // --- Schema and Types ---
@@ -116,14 +116,9 @@ export default function TitleUpload() {
         formData.append('userId', user.uuid);
       }
 
-      await axiosInstance.post('/titles/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          const progress = progressEvent.loaded / (progressEvent.total ?? 0) * 100;
-          setUploadProgress(Math.round(progress));
-        }
+      await uploadAPI.uploadChapter(formData, (progressEvent) => {
+        const progress = progressEvent.loaded / (progressEvent.total ?? 1) * 100;
+        setUploadProgress(Math.round(progress));
       });
 
       toastUtil.success('Upload successful');

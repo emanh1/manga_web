@@ -1,6 +1,6 @@
 import React from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { uploadAPI } from "../../api/axios";
+import { titleAPI } from "../../api/axios";
 import { useChapterReader } from "../../utils/useChapterReader";
 import { toastUtil } from '../toast';
 import ReaderHeader from "./ReaderHeader";
@@ -25,7 +25,7 @@ const ReaderContent: React.FC = () => {
   } = useChapterReader({
     titleId,
     chapterId,
-    fetchChapterFn: uploadAPI.getChapter,
+    fetchChapterFn: titleAPI.getChapter,
   });
   const [imgLoading, setImgLoading] = React.useState(true);
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
@@ -36,7 +36,7 @@ const ReaderContent: React.FC = () => {
 
   React.useEffect(() => {
     if (!titleId) return;
-    uploadAPI.getChapters(titleId).then((data) => {
+    titleAPI.getChapters(titleId).then((data) => {
       setChapterList(data.chapters || []);
     });
   }, [titleId]);
