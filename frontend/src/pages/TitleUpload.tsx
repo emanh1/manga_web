@@ -127,7 +127,7 @@ export default function TitleUpload() {
       });
 
       toastUtil.success('Upload successful');
-      navigate('/');
+      navigate(-1);
     } catch (error: any) {
       console.error('Upload error:', error);
       if (error.response?.data?.errors) {
