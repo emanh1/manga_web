@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { HiMenu, HiChevronDown, HiChevronUp } from 'react-icons/hi';
 
 type Props = {
   children: React.ReactNode;
@@ -52,11 +53,13 @@ const Layout: React.FC<Props> = ({ children }) => {
                   aria-haspopup="true"
                   aria-expanded={menuOpen}
                 >
-                  <span className="text-gray-700 font-medium">Menu</span>
-                  <svg className="w-4 h-4 ml-1 text-gray-500" fill="none"
-                    stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
+                  {user ? (<>
+                    <img src={user.avatarUrl}
+                      className="w-8 h-8 rounded-full border" />
+                    <span className="text-sm font-medium text-gray-700">{user.username}</span>
+                  </>) : (<><HiMenu className="w-6 h-6 text-gray-700" />
+                  </>)}
+                    {menuOpen ? (<HiChevronUp className="w-6 h-6" />) : (<HiChevronDown className="w-6 h-6" />)}
                 </button>
                 <div
                   className={`absolute right-0 mt-2 w-48 bg-white border rounded shadow-lg transition z-50 ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
@@ -67,10 +70,17 @@ const Layout: React.FC<Props> = ({ children }) => {
                     <>
                       <Link
                         to="/login"
-                        className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                        className="block px-4 py-2 text-yellow-600 hover:bg-gray-100"
                         onClick={() => setMenuOpen(false)}
                       >
                         Log in
+                      </Link>
+                      <Link
+                        to="/register"
+                        className="block px-4 py-2 text-blue-600 hover:bg-gray-100"
+                        onClick={() => setMenuOpen(false)}
+                      >
+                        Register
                       </Link>
                       <hr className="my-1 border-gray-200" />
                     </>
