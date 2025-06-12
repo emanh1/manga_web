@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import db from './models/index.js';
 import authRoutes from './routes/auth.routes.js';
+import titleRoutes from './routes/title.routes.js';
 import uploadRoutes from './routes/upload.routes.js';
 import userRoutes from './routes/user.routes.js';
 import { errorHandler, notFound } from './middlewares/error.js';
@@ -22,7 +23,8 @@ app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/titles', uploadRoutes);
+app.use('/api/upload', uploadRoutes);
+app.use('/api/titles', titleRoutes);
 app.use('/api/user', userRoutes);
 
 // Error Handling

@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import type { TTitleChapter, TMALEntity, TTitle } from "../types/titles";
 import { toastUtil } from './toast';
 import { useAuth } from "../contexts/AuthContext";
-import { uploadAPI } from "../api/axios";
+import { titleAPI } from "../api/axios";
 import { useTitleDetails } from "../hooks/useTitleDetails";
 import { formatDistanceToNow } from 'date-fns';
 import { FaClock, FaEye, FaUser, FaStar, FaUpload, FaPlus } from 'react-icons/fa';
@@ -317,7 +317,7 @@ const TitleDetails: React.FC = () => {
   useEffect(() => {
     if (!titleId) return;
     setLoading(true);
-    uploadAPI.getChapters(titleId)
+    titleAPI.getChapters(titleId)
       .then((chaptersData) => setChapters(chaptersData.chapters))
       .catch(() => {
         toastUtil.error('Failed to load chapters');
