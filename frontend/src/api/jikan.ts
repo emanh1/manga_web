@@ -24,10 +24,10 @@ export const searchTitle = async (query: string, limit = 10): Promise<TTitle[]> 
   });
 };
 
-export const getTopTitle = async (limit = 20): Promise<TTitle[]> => {
+export const getTopTitle = async (limit = 20, page = 1): Promise<TTitle[]> => {
   return axiosWithRetry(async () => {
     const response = await api.get('/top/manga', {
-      params: { limit },
+      params: { limit, page },
     });
     return response.data.data;
   });

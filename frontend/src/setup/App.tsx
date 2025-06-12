@@ -16,6 +16,7 @@ import ResetPassword from '../pages/ResetPassword';
 import Settings from '../pages/Settings';
 import AdminDashboard from '../pages/AdminDashboard';
 import AboutUs from '../pages/AboutUs';
+import TopRatedTitlesPage from '../pages/TopRatedTitles';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
             <Route path="/titles/:titleId" element={<TitleDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/titles/top" element={<TopRatedTitlesPage/>} />
             <Route 
               path="/titles/:titleId/:chapterId" 
               element={
