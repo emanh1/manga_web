@@ -73,7 +73,7 @@ export const getUserUploads = async (req, res, next) => {
     } else {
       userId = req.user.uuid;
     }
-    const uploads = await db.MangaUpload.findAll({
+    const uploads = await db.TitleUpload.findAll({
       where: { uploaderId: userId },
       order: [['malId', 'ASC'], ['volume', 'ASC'], ['chapterNumber', 'ASC']],
     });

@@ -2,15 +2,15 @@ import React from "react";
 import GatewaySelector from "../GatewaySelector";
 
 type ImageFit = 'no-limit' | 'fit-width' | 'fit-height' | 'fit-both';
-import type { TMangaChapter } from "../../types/manga";
+import type { TTitleChapter } from "../../types/titles";
 
 interface ReaderMenuProps {
   sidebarOpen: boolean;
   onClose: () => void;
-  chapterList: TMangaChapter[];
+  chapterList: TTitleChapter[];
   chapterIndex: number | null;
   chapterId: string | undefined;
-  mangaId: string | undefined;
+  titleId: string | undefined;
   navigate: (url: string) => void;
   currentPage: number;
   setCurrentPage: (n: number) => void;
@@ -25,7 +25,7 @@ const ReaderMenu: React.FC<ReaderMenuProps> = ({
   chapterList,
   chapterIndex,
   chapterId,
-  mangaId,
+  titleId,
   navigate,
   currentPage,
   setCurrentPage,
@@ -63,7 +63,7 @@ const ReaderMenu: React.FC<ReaderMenuProps> = ({
                 onClick={() => {
                   if (chapterIndex !== null && chapterIndex > 0) {
                     const prev = chapterList[chapterIndex - 1];
-                    navigate(`/manga/${mangaId}/${prev.chapterId}`);
+                    navigate(`/titles/${titleId}/${prev.chapterId}`);
                   }
                 }}
                 disabled={chapterIndex === null || chapterIndex <= 0}
@@ -74,7 +74,7 @@ const ReaderMenu: React.FC<ReaderMenuProps> = ({
                 className="border rounded px-2 py-1 text-sm"
                 value={chapterId}
                 onChange={e => {
-                  navigate(`/manga/${mangaId}/${e.target.value}`);
+                  navigate(`/titles/${titleId}/${e.target.value}`);
                 }}
               >
                 {chapterList.map((c) => (
@@ -92,7 +92,7 @@ const ReaderMenu: React.FC<ReaderMenuProps> = ({
                     chapterIndex !== -1
                   ) {
                     const next = chapterList[chapterIndex + 1];
-                    navigate(`/manga/${mangaId}/${next.chapterId}`);
+                    navigate(`/titles/${titleId}/${next.chapterId}`);
                   }
                 }}
                 disabled={chapterIndex === null || chapterIndex === chapterList.length - 1 || chapterIndex === -1}

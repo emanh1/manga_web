@@ -1,5 +1,5 @@
 // Types for Jikan pictures endpoint
-export interface TMangaPicture {
+export interface TTitlePicture {
   jpg: {
     image_url: string;
   };
@@ -8,6 +8,6 @@ export interface TMangaPicture {
   };
 }
 
-export interface TMangaPicturesResponse {
-  data: TMangaPicture[];
+export interface TTitlePicturesResponse {
+  data: TTitlePicture[];
 }

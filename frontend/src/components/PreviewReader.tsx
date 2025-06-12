@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { useIPFSGateway } from '../contexts/IPFSGatewayContext';
 import { LoadingSpinner } from './LoadingSpinner';
 import { FaSyncAlt } from 'react-icons/fa';
-import type { TMangaPage } from "../types/manga";
+import type { TTitlePage } from "../types/titles";
 
 const PRESET_GATEWAYS = [
   "https://ipfs.io/ipfs/",
@@ -15,7 +15,7 @@ const PRESET_GATEWAYS = [
 ];
 
 const PreviewReader: React.FC = () => {
-  const { mangaId, chapterId } = useParams();
+  const { titleId, chapterId } = useParams();
   const {
     chapter,
     pages,
@@ -25,7 +25,7 @@ const PreviewReader: React.FC = () => {
     nextPage,
     previousPage,
   } = useChapterReader({
-    mangaId,
+    titleId,
     chapterId,
     fetchChapterFn: uploadAPI.previewChapter,
   });

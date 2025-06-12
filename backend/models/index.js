@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize';
 import UserModel from './user.model.js';
-import MangaUploadModel from './mangaUpload.model.js';
+import TitleUploadModel from './TitleUpload.model.js';
 import dbConfig from "../config/config.js";
 import dotenv from 'dotenv';
 
@@ -24,7 +24,7 @@ const db = {
   sequelize,
   Sequelize,
   User: UserModel(sequelize),
-  MangaUpload: MangaUploadModel(sequelize),
+  TitleUpload: TitleUploadModel(sequelize),
 };
 
 // Initialize associations

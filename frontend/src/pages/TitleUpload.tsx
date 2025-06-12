@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMangaDetails } from '../hooks/useMangaDetails';
+import { useTitleDetails } from '../hooks/useTitleDetails';
 import toast from 'react-hot-toast';
 import FileUploadManager from '../components/FileUploadManager';
 import axiosInstance from '../api/axios';
@@ -33,8 +33,8 @@ const uploadSchema = z.object({
 
 type UploadFormData = z.input<typeof uploadSchema>;
 
-export default function MangaUpload() {
-  const { mangaId } = useParams();
+export default function TitleUpload() {
+  const { titleId } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
@@ -52,7 +52,7 @@ export default function MangaUpload() {
     resolver: zodResolver(uploadSchema),
     defaultValues: {
       isOneshot: false,
-      malId: mangaId ? Number(mangaId) : undefined,
+      malId: titleId ? Number(titleId) : undefined,
       volume: undefined,
       chapterNumber: undefined,
       chapterTitle: '',
@@ -67,21 +67,21 @@ export default function MangaUpload() {
   const isOneshot = watch('isOneshot');
 
   // Use the new hook
-  const { manga: selectedManga } = useMangaDetails(malId);
+  const { title: selectedTitle } = useTitleDetails(malId);
 
   // Set malId from URL param if present
   useEffect(() => {
-    if (mangaId) {
-      setValue('malId', Number(mangaId));
+    if (titleId) {
+      setValue('malId', Number(titleId));
     }
-  }, [mangaId, setValue]);
+  }, [titleId, setValue]);
 
-  // Set title from selectedManga
+  // Set title from selectedTitle
   useEffect(() => {
-    if (selectedManga) {
-      setValue('title', selectedManga.title);
+    if (selectedTitle) {
+      setValue('title', selectedTitle.title);
     }
-  }, [selectedManga, setValue]);
+  }, [selectedTitle, setValue]);
 
   // Sync files state with form
   useEffect(() => {
@@ -111,7 +111,7 @@ export default function MangaUpload() {
         formData.append('fileOrder', String(index + 1));
       });
 
-      await axiosInstance.post('/manga/upload', formData, {
+      await axiosInstance.post('/titles/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         },
@@ -133,7 +133,7 @@ export default function MangaUpload() {
         })));
         toast.error('Some files failed to upload. Please check the error list below.');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to upload manga');
+        toast.error(error.response?.data?.message || 'Failed to upload title');
       }
     } finally {
       setIsLoading(false);
@@ -144,7 +144,7 @@ export default function MangaUpload() {
   // --- Render ---
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Upload Manga</h1>
+      <h1 className="text-2xl font-bold mb-6">Upload Title</h1>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1">IPFS Node/API URL</label>
@@ -159,11 +159,11 @@ export default function MangaUpload() {
           <div className="mt-1 text-xs text-gray-500">This is the IPFS node your files will be uploaded to.</div>
         </div>
 
-        {selectedManga ? (
+        {selectedTitle ? (
           <div className="flex gap-4 items-start mb-4">
             <img
-              src={selectedManga.images.jpg.image_url}
-              alt={selectedManga.title}
+              src={selectedTitle.images.jpg.image_url}
+              alt={selectedTitle.title}
               className="w-32 rounded-lg shadow-md"
             />
             <div className="flex-1">
@@ -172,20 +172,20 @@ export default function MangaUpload() {
                 <input
                   type="text"
                   className="w-full px-3 py-2 border rounded-lg bg-gray-50"
-                  value={selectedManga.title}
+                  value={selectedTitle.title}
                   readOnly
                   {...register('title')}
                 />
                 <a
-                  href={`/manga/${malId}`}
+                  href={`/titles/${malId}`}
                   rel="noopener noreferrer"
                   className="absolute inset-0 flex items-center px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                  {selectedManga.title}
+                  {selectedTitle.title}
                 </a>
               </div>
               <p className="mt-2 text-sm text-gray-600">
-                {selectedManga.synopsis?.slice(0, 200)}...
+                {selectedTitle.synopsis?.slice(0, 200)}...
               </p>
             </div>
           </div>
@@ -195,7 +195,7 @@ export default function MangaUpload() {
             <input
               type="text"
               className="w-full px-3 py-2 border rounded-lg"
-              placeholder="Search manga title..."
+              placeholder="Search title title..."
               {...register('title')}
             />
             {errors.title && (
@@ -260,7 +260,7 @@ export default function MangaUpload() {
               className="form-checkbox"
               {...register('isOneshot')}
             />
-            <span className="text-sm font-medium">One-shot manga</span>
+            <span className="text-sm font-medium">One-shot title</span>
           </label>
         </div>
 

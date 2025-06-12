@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { searchManga, getRandomManga } from "../api/jikan";
-import type { TManga } from "../types/manga";
+import { searchTitle, getRandomTitle } from "../api/jikan";
+import type { TTitle } from "../types/titles";
 import SearchBar from "../components/SearchBar";
-import MangaCard from "../components/MangaCard";
-import TopRatedManga from "../components/TopRatedManga";
-import MangaRecommendations from "../components/MangaRecommendations";
+import TitleCard from "../components/TitleCard";
+import TopRatedTitle from "../components/TopRatedTitle";
+import TitleRecommendations from "../components/TitleRecommendations";
 import { useDebounce } from "../hooks/useDebounce";
 
 const Home: React.FC = () => {
@@ -13,7 +13,7 @@ const Home: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialQuery = searchParams.get("q") || "";
   const [query, setQuery] = useState(initialQuery);
-  const [mangaList, setMangaList] = useState<TManga[]>([]);
+  const [titleList, setTitleList] = useState<TTitle[]>([]);
   const [loading, setLoading] = useState(false);
   const debouncedQuery = useDebounce(query, 500);
 
@@ -24,14 +24,14 @@ const Home: React.FC = () => {
   useEffect(() => {
     const performSearch = async () => {
       if (!debouncedQuery.trim()) {
-        setMangaList([]);
+        setTitleList([]);
         return;
       }
       
       setLoading(true);
       try {
-        const results = await searchManga(debouncedQuery);
-        setMangaList(results);
+        const results = await searchTitle(debouncedQuery);
+        setTitleList(results);
       } catch (error) {
         console.error("Search failed:", error);
       } finally {
@@ -42,13 +42,13 @@ const Home: React.FC = () => {
     performSearch();
   }, [debouncedQuery]);
 
-  const handleRandomManga = async () => {
+  const handleRandomTitle = async () => {
     setLoading(true);
     try {
-      const manga = await getRandomManga();
-      navigate(`/manga/${manga.mal_id}`);
+      const title = await getRandomTitle();
+      navigate(`/titles/${title.mal_id}`);
     } catch (error) {
-      console.error("Failed to get random manga:", error);
+      console.error("Failed to get random title:", error);
     } finally {
       setLoading(false);
     }
@@ -59,7 +59,7 @@ const Home: React.FC = () => {
       <SearchBar 
         query={query}
         setQuery={setQuery}
-        onRandomClick={handleRandomManga}
+        onRandomClick={handleRandomTitle}
         isLoading={loading}
       />
 
@@ -71,16 +71,16 @@ const Home: React.FC = () => {
 
       {query && (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {mangaList.map((manga) => (
-            <Link to={`/manga/${manga.mal_id}`} key={manga.mal_id}>
-              <MangaCard manga={manga} />
+          {titleList.map((title) => (
+            <Link to={`/titles/${title.mal_id}`} key={title.mal_id}>
+              <TitleCard title={title} />
             </Link>
           ))}
         </div>
       )}
 
-      <MangaRecommendations/>
-      <TopRatedManga />
+      <TitleRecommendations/>
+      <TopRatedTitle />
     </div>
   );
 };

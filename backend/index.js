@@ -22,7 +22,7 @@ app.use('/uploads', express.static('uploads'));
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/manga', uploadRoutes);
+app.use('/api/titles', uploadRoutes);
 app.use('/api/user', userRoutes);
 
 // Error Handling

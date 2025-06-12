@@ -8,10 +8,10 @@ import ReaderImage from "./ReaderImage";
 import ReaderMenu from "./ReaderMenu";
 import { useIPFSGateway } from '../../contexts/IPFSGatewayContext';
 import { IPFSGatewayProvider } from '../../contexts/IPFSGatewayContext';
-import type { TMangaChapter } from "../../types/manga";
+import type { TTitleChapter } from "../../types/titles";
 
 const ReaderContent: React.FC = () => {
-  const { mangaId, chapterId } = useParams();
+  const { titleId, chapterId } = useParams();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const pageParam = searchParams.get("page");
@@ -23,23 +23,23 @@ const ReaderContent: React.FC = () => {
     setCurrentPage,
     loading,
   } = useChapterReader({
-    mangaId,
+    titleId,
     chapterId,
     fetchChapterFn: uploadAPI.getChapter,
   });
   const [imgLoading, setImgLoading] = React.useState(true);
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
-  const [chapterList, setChapterList] = React.useState<TMangaChapter[]>([]);
+  const [chapterList, setChapterList] = React.useState<TTitleChapter[]>([]);
   const [chapterIndex, setChapterIndex] = React.useState<number | null>(null);
   const [imageFit, setImageFit] = React.useState<'no-limit' | 'fit-width' | 'fit-height' | 'fit-both'>('fit-both');
   const { gateway } = useIPFSGateway();
 
   React.useEffect(() => {
-    if (!mangaId) return;
-    uploadAPI.getChapters(mangaId).then((data) => {
+    if (!titleId) return;
+    uploadAPI.getChapters(titleId).then((data) => {
       setChapterList(data.chapters || []);
     });
-  }, [mangaId]);
+  }, [titleId]);
 
   React.useEffect(() => {
     if (!chapterList.length || !chapterId) return;
@@ -75,7 +75,7 @@ const ReaderContent: React.FC = () => {
   const handlePrev = () => {
     if (currentPage === 0 && chapterIndex !== null && chapterIndex > 0) {
       const prev = chapterList[chapterIndex - 1];
-      navigate(`/manga/${mangaId}/${prev.chapterId}?page=${pages.length - 1}`);
+      navigate(`/titles/${titleId}/${prev.chapterId}?page=${pages.length - 1}`);
     } else {
       setCurrentPage(Math.max(0, currentPage - 1));
     }
@@ -84,7 +84,7 @@ const ReaderContent: React.FC = () => {
   const handleNext = () => {
     if (currentPage === pages.length - 1 && chapterIndex !== null && chapterIndex < chapterList.length - 1) {
       const next = chapterList[chapterIndex + 1];
-      navigate(`/manga/${mangaId}/${next.chapterId}?page=0`);
+      navigate(`/titles/${titleId}/${next.chapterId}?page=0`);
     } else {
       setCurrentPage(Math.min(pages.length - 1, currentPage + 1));
     }
@@ -139,7 +139,7 @@ const ReaderContent: React.FC = () => {
         chapterList={chapterList}
         chapterIndex={chapterIndex}
         chapterId={chapterId}
-        mangaId={mangaId}
+        titleId={titleId}
         navigate={navigate}
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}

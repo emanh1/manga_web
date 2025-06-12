@@ -1,7 +1,7 @@
 import { DataTypes } from 'sequelize';
 
 export default (sequelize) => {
-  const MangaUpload = sequelize.define('MangaUpload', {
+  const TitleUpload = sequelize.define('TitleUpload', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -71,12 +71,12 @@ export default (sequelize) => {
     },
   });
 
-  MangaUpload.associate = (models) => {
-    MangaUpload.belongsTo(models.User, {
+  TitleUpload.associate = (models) => {
+    TitleUpload.belongsTo(models.User, {
       foreignKey: 'uploaderId',
       as: 'uploader',
     });
   };
 
-  return MangaUpload;
+  return TitleUpload;
 };

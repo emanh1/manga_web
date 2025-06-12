@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import axiosInstance from '../api/axios';
 import { Link } from 'react-router-dom';
-import type { TMangaChapter } from '../types/manga';
+import type { TTitleChapter } from '../types/titles';
 
-interface UserManga {
+interface UserTitle {
   malId: number;
   title: string;
-  chapters: TMangaChapter[];
+  chapters: TTitleChapter[];
 }
 
 interface YourUploadsTabProps {
@@ -14,7 +14,7 @@ interface YourUploadsTabProps {
 }
 
 export default function YourUploadsTab({ uuid }: YourUploadsTabProps) {
-  const [uploads, setUploads] = useState<UserManga[]>([]);
+  const [uploads, setUploads] = useState<UserTitle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,11 +45,11 @@ export default function YourUploadsTab({ uuid }: YourUploadsTabProps) {
     <div className="container mx-auto px-4 py-8">
       <h2 className="text-xl font-bold mb-6">Uploads</h2>
       <div className="space-y-8">
-        {uploads.map(manga => (
-          <div key={manga.malId} className="bg-white rounded-lg shadow p-4">
+        {uploads.map(title => (
+          <div key={title.malId} className="bg-white rounded-lg shadow p-4">
             <div className="flex items-center mb-2">
               <h3 className="text-lg font-semibold flex-1">
-                <Link to={`/manga/${manga.malId}`}>{manga.title}</Link>
+                <Link to={`/titles/${title.malId}`}>{title.title}</Link>
               </h3>
             </div>
             <div className="overflow-x-auto">
@@ -64,13 +64,13 @@ export default function YourUploadsTab({ uuid }: YourUploadsTabProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {manga.chapters.map(chap => (
+                  {title.chapters.map(chap => (
                     <tr
                       key={chap.chapterId}
                       className="border-b last:border-0 cursor-pointer hover:bg-purple-50 transition"
-                      onClick={() => window.location.href = `/manga/${manga.malId}/${chap.chapterId}`}
+                      onClick={() => window.location.href = `/titles/${title.malId}/${chap.chapterId}`}
                       tabIndex={0}
-                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = `/manga/${manga.malId}/${chap.chapterId}`; }}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = `/titles/${title.malId}/${chap.chapterId}`; }}
                       aria-label={`Go to chapter ${chap.chapterNumber ?? ''} ${chap.chapterTitle ?? ''}`}
                     >
                       <td className="px-2 py-1">{chap.volume ?? '-'}</td>

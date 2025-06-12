@@ -1,17 +1,17 @@
 import { Link } from "react-router-dom";
-import { useMangaDetails } from '../hooks/useMangaDetails';
-import type { TMangaRecommendation } from "../types/manga";
-import MangaCard from "./MangaCard";
+import { useTitleDetails } from '../hooks/useTitleDetails';
+import type { TTitleRecommendation } from "../types/titles";
+import TitleCard from "./TitleCard";
 
 export const RecommendationCard: React.FC<{
-  recommendation: TMangaRecommendation;
+  recommendation: TTitleRecommendation;
   isExpanded: boolean;
   onToggle: () => void;
 }> = ({ recommendation, isExpanded, onToggle }) => {
-  const { manga: firstManga, loading: loadingFirst } = useMangaDetails(recommendation.entry[0]?.mal_id);
-  const { manga: secondManga, loading: loadingSecond } = useMangaDetails(recommendation.entry[1]?.mal_id);
+  const { title: firstTitle, loading: loadingFirst } = useTitleDetails(recommendation.entry[0]?.mal_id);
+  const { title: secondTitle, loading: loadingSecond } = useTitleDetails(recommendation.entry[1]?.mal_id);
 
-  if (loadingFirst || loadingSecond || !firstManga || !secondManga) {
+  if (loadingFirst || loadingSecond || !firstTitle || !secondTitle) {
     return <div className="bg-white p-4 rounded-lg shadow">Loading...</div>;
   }
 
@@ -19,13 +19,13 @@ export const RecommendationCard: React.FC<{
     <div className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
       <div className="flex gap-4 mb-4">
         <div className="flex-1">
-          <Link to={`/manga/${firstManga.mal_id}`}>
-            <MangaCard manga={firstManga} />
+          <Link to={`/titles/${firstTitle.mal_id}`}>
+            <TitleCard title={firstTitle} />
           </Link>
         </div>
         <div className="flex-1">
-          <Link to={`/manga/${secondManga.mal_id}`}>
-            <MangaCard manga={secondManga} />
+          <Link to={`/titles/${secondTitle.mal_id}`}>
+            <TitleCard title={secondTitle} />
           </Link>
         </div>
       </div>

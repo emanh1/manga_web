@@ -2,11 +2,11 @@ import { useState, useEffect } from 'react';
 import { uploadAPI } from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { type TMangaChapter } from '../types/manga';
+import { type TTitleChapter } from '../types/titles';
 
 export default function ReviewUploadsPanel() {
   const { token } = useAuth();
-  const [uploads, setUploads] = useState<TMangaChapter[]>([]);
+  const [uploads, setUploads] = useState<TTitleChapter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalUploadId, setModalUploadId] = useState<number | null>(null);
@@ -26,7 +26,7 @@ export default function ReviewUploadsPanel() {
       for (const upload of uploads) {
         if (upload.malId) {
           try {
-            const response = await fetch(`https://api.jikan.moe/v4/manga/${upload.malId}`);
+            const response = await fetch(`https://api.jikan.moe/v4/titles/${upload.malId}`);
             const data = await response.json();
             newCoverImages[upload.malId] = data.data?.images?.jpg?.large_image_url || '';
           } catch (error) {
@@ -115,7 +115,7 @@ export default function ReviewUploadsPanel() {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <h2 className="text-2xl font-bold mb-6">Review Manga Uploads</h2>
+      <h2 className="text-2xl font-bold mb-6">Review Title Uploads</h2>
       <div className="mb-4 flex gap-2">
         <button
           className={`px-4 py-2 rounded ${view === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
@@ -136,7 +136,7 @@ export default function ReviewUploadsPanel() {
             {upload.malId && coverImages[upload.malId] && (
               <img
                 src={coverImages[upload.malId]}
-                alt={`Cover for manga ${upload.malId}`}
+                alt={`Cover for title ${upload.malId}`}
                 className="w-24 h-36 object-cover rounded-lg shadow mr-4"
               />
             )}
@@ -190,7 +190,7 @@ export default function ReviewUploadsPanel() {
               )}
               <div className="mt-4 flex gap-4">
                 <a
-                  href={`/manga/${upload.malId}/${upload.chapterId}/preview`}
+                  href={`/titles/${upload.malId}/${upload.chapterId}/preview`}
                   className="text-blue-600 hover:underline"
                   target="_blank"
                   rel="noopener noreferrer"

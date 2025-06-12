@@ -21,7 +21,7 @@ const SearchBar: React.FC<Props> = ({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="flex-1 border p-2 rounded"
-          placeholder="Search manga..."
+          placeholder="Search title..."
         />
       </form>
       <button

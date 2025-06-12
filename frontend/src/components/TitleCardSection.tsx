@@ -2,14 +2,14 @@ import React, { useRef } from "react";
 import type { ReactNode } from "react";
 import ScrollButtons from "./ScrollButtons";
 
-interface MangaCardSectionProps {
+interface TitleCardSectionProps {
   title: string;
   children: ReactNode;
   className?: string;
   scrollAmount?: number;
 }
 
-const MangaCardSection: React.FC<MangaCardSectionProps> = ({ title, children, className = "", scrollAmount }) => {
+const TitleCardSection: React.FC<TitleCardSectionProps> = ({ title, children, className = "", scrollAmount }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   return (
     <section className={`mt-8 ${className}`}>
@@ -26,4 +26,4 @@ const MangaCardSection: React.FC<MangaCardSectionProps> = ({ title, children, cl
   );
 };
 
-export default MangaCardSection;
+export default TitleCardSection;
