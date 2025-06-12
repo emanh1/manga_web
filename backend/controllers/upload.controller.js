@@ -73,7 +73,7 @@ export const uploadTitleChapter = async (req, res, next) => {
     uploadedFiles.push(...ipfsResult.uploadedFiles);
 
     // Create manga upload records
-    const result = await UploadService.createTitleUpload(req.body, ipfsResult, req.user.uuid);
+    const result = await UploadService.createChapterWithPages(req.body, ipfsResult);
 
     // Clean up local files
     await cleanupFiles(uploadedFiles);

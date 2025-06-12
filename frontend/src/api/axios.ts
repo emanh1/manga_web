@@ -94,7 +94,7 @@ export const uploadAPI = {
     const response = await axiosInstance.get('/titles/admin/rejected');
     return response.data;
   },
-  reviewChapter: async (id: number, status: 'approved' | 'rejected', rejectionReason?: string, token?: string) => {
+  reviewChapter: async (id: string, status: 'approved' | 'rejected', rejectionReason?: string, token?: string) => {
     const response = await axiosInstance.post(
       `/titles/admin/review/${id}`,
       { status, rejectionReason },

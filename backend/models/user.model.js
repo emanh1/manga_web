@@ -69,8 +69,12 @@ export default (sequelize) => {
     },
   });
 
-  User.prototype.validatePassword = async function(password) {
+  User.prototype.validatePassword = async function (password) {
     return bcrypt.compare(password, this.password);
+  };
+
+  User.associate = (models) => {
+    User.hasMany(models.Chapter, { as: 'chapters', foreignKey: 'uploaderId' });
   };
 
   return User;
