@@ -23,10 +23,10 @@ const TopRatedTitle: React.FC = () => {
     fetchTopRated();
   }, []);
 
-  if (loading) return <p>Loading top rated title...</p>;
+  if (loading) return <p>Loading top rated titles...</p>;
 
   return (
-    <TitleCardSection title="Top Rated Titles">
+    <TitleCardSection title="Top Rated Titles" linkTo="/titles/top">
       {topRated.map((title) => (
         <div className="w-[250px] flex-shrink-0" key={title.mal_id}>
           <Link to={`/titles/${title.mal_id}`}>
