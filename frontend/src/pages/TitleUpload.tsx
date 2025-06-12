@@ -7,6 +7,7 @@ import { useTitleDetails } from '../hooks/useTitleDetails';
 import toast from 'react-hot-toast';
 import FileUploadManager from '../components/FileUploadManager';
 import axiosInstance from '../api/axios';
+import { useAuth } from '../contexts/AuthContext';
 
 // --- Schema and Types ---
 const uploadSchema = z.object({
@@ -34,6 +35,7 @@ const uploadSchema = z.object({
 type UploadFormData = z.input<typeof uploadSchema>;
 
 export default function TitleUpload() {
+  const { user } = useAuth();
   const { titleId } = useParams();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
@@ -110,6 +112,9 @@ export default function TitleUpload() {
         formData.append('files', file);
         formData.append('fileOrder', String(index + 1));
       });
+      if (user) {
+        formData.append('userId', user.uuid);
+      }
 
       await axiosInstance.post('/titles/upload', formData, {
         headers: {

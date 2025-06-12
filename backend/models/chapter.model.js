@@ -1,16 +1,11 @@
 import { DataTypes } from 'sequelize';
 
 export default (sequelize) => {
-  const TitleUpload = sequelize.define('TitleUpload', {
+  const Chapter = sequelize.define('Chapter', {
     id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true
-    },
-    chapterId: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
-      allowNull: false,
+      primaryKey: true,
     },
     title: {
       type: DataTypes.STRING,
@@ -40,14 +35,6 @@ export default (sequelize) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
-    fileOrder: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    filePath: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
     status: {
       type: DataTypes.ENUM('pending', 'approved', 'rejected'),
       defaultValue: 'pending',
@@ -66,17 +53,14 @@ export default (sequelize) => {
     },
     viewCount: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       defaultValue: 0,
     },
   });
 
-  TitleUpload.associate = (models) => {
-    TitleUpload.belongsTo(models.User, {
-      foreignKey: 'uploaderId',
-      as: 'uploader',
-    });
+  Chapter.associate = (models) => {
+    Chapter.belongsTo(models.User, { foreignKey: 'uploaderId', as: 'uploader' });
+    Chapter.hasMany(models.ChapterPage, { foreignKey: 'chapterId', as: 'pages' });
   };
 
-  return TitleUpload;
+  return Chapter;
 };

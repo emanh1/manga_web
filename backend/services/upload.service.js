@@ -38,38 +38,46 @@ class UploadService {
     return { cids, fileErrors, uploadedFiles };
   }
 
-  static async createTitleUpload(uploadData, files, userId) {
-    let { title, malId, volume, chapterNumber, chapterTitle, language, isOneshot } = uploadData;
+  static async createChapterWithPages(uploadData, files) {
+    const {
+      title,
+      malId,
+      volume,
+      chapterNumber,
+      chapterTitle: rawTitle,
+      language,
+      isOneshot,
+      userId
+    } = uploadData;
 
-    if (isOneshot === true || isOneshot === 'true') {
-      chapterTitle = 'Oneshot';
-    }
+    const chapterTitle = (isOneshot === true || isOneshot === 'true') ? 'Oneshot' : rawTitle;
+    const newChapter = await db.Chapter.create({
+      title,
+      malId: malId ? parseInt(malId) : null,
+      volume: volume ? parseInt(volume) : null,
+      chapterNumber: chapterNumber ? parseInt(chapterNumber) : null,
+      chapterTitle: chapterTitle || null,
+      language,
+      isOneshot: Boolean(isOneshot),
+      uploaderId: userId
+    });
 
-    const commonChapterId = uuidv4();
-
-    const uploads = await Promise.all(files.cids.map((cid, index) => {
-      const uploadDataObj = {
-        title,
-        malId: malId ? parseInt(malId) : null,
-        volume: volume ? parseInt(volume) : null,
-        chapterNumber: chapterNumber ? parseInt(chapterNumber) : null,
-        chapterTitle: chapterTitle || null,
-        language,
-        isOneshot: Boolean(isOneshot),
+    const pages = await Promise.all(files.cids.map((cid, index) => {
+      return db.ChapterPage.create({
+        chapterId: newChapter.id,
         fileOrder: index,
-        filePath: cid,
-        uploaderId: userId,
-        chapterId: commonChapterId
-      };
-      return db.TitleUpload.create(uploadDataObj);
+        filePath: cid
+      });
     }));
 
     return {
-      chapterId: commonChapterId,
-      uploads,
+      chapterId: newChapter.id,
+      chapter: newChapter,
+      pages,
       fileErrors: files.fileErrors
     };
   }
+
 
   static _formatChapterResult(pages) {
     if (!pages || pages.length === 0) return null;
@@ -92,29 +100,41 @@ class UploadService {
   }
 
   static async _getChapterByStatus(titleId, chapterId, statuses) {
-    const whereStatus = { [Op.in]: statuses };
-    await db.TitleUpload.increment('viewCount', {
-      by: 1,
-      where: { chapterId, malId: titleId }
-    });
-    const pages = await db.TitleUpload.findAll({
+    const chapter = await db.Chapter.findOne({
       where: {
-        chapterId,
+        id: chapterId,
         malId: titleId,
-        status: whereStatus
+        status: { [Op.in]: statuses }
       },
-      include: [{
-        model: db.User,
-        as: 'uploader',
-        attributes: ['username', 'uuid']
-      }],
-      order: [['fileOrder', 'ASC']]
+      include: [
+        { model: db.User, as: 'uploader', attributes: ['username', 'uuid'] },
+        { model: db.ChapterPage, as: 'pages', order: [['fileOrder', 'ASC']] }
+      ]
     });
-    if (!pages || pages.length === 0) {
-      throw new AppError('Chapter not found');
-    }
-    return this._formatChapterResult(pages);
+
+    if (!chapter) throw new AppError('Chapter not found', 404);
+
+    // Increment view count
+    // await chapter.increment('viewCount');
+
+    return {
+      id: chapter.id,
+      title: chapter.title,
+      chapterNumber: chapter.chapterNumber,
+      volume: chapter.volume,
+      chapterTitle: chapter.chapterTitle,
+      language: chapter.language,
+      isOneshot: chapter.isOneshot,
+      uploader: chapter.uploader,
+      viewCount: chapter.viewCount,
+      pages: chapter.pages.map(page => ({
+        id: page.id,
+        fileOrder: page.fileOrder,
+        filePath: page.filePath
+      }))
+    };
   }
+
 
   static async getChapterInfo(titleId, chapterId) {
     return this._getChapterByStatus(titleId, chapterId, ['approved']);
@@ -138,101 +158,80 @@ class UploadService {
   }
 
   static async getChapters(titleId) {
-    const chapters = await db.TitleUpload.findAll({
+    const chapters = await db.Chapter.findAll({
       where: {
         malId: titleId,
         status: 'approved'
       },
-      attributes: [
-        'chapterId',
-        'chapterNumber',
-        'volume',
-        'chapterTitle',
-        'language',
-        'isOneshot',
-        'viewCount',
-        [db.Sequelize.fn('MIN', db.Sequelize.col('TitleUpload.createdAt')), 'uploadedAt']
+      include: [
+        { model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }
       ],
-      include: [{
-        model: db.User,
-        as: 'uploader',
-        attributes: ['username', 'uuid']
-      }],
-      group: ['chapterId', 'chapterNumber', 'volume', 'chapterTitle', 'language', 'isOneshot', 'uploader.uuid', 'uploader.username', 'viewCount'],
-      order: [
-        ['volume', 'ASC'],
-        ['chapterNumber', 'ASC']
-      ]
+      order: [['volume', 'ASC'], ['chapterNumber', 'ASC']]
     });
 
-  return chapters.map(chapter => ({
-    chapterId: chapter.chapterId,
-    chapterNumber: chapter.chapterNumber,
-    volume: chapter.volume,
-    chapterTitle: chapter.chapterTitle,
-    language: chapter.language,
-    isOneshot: chapter.isOneshot,
-    uploadedAt: chapter.get('uploadedAt'),
-    uploader: chapter.uploader ? { username: chapter.uploader.username, uuid: chapter.uploader.uuid } : null,
-    viewCount: chapter.viewCount
-  }));
-}
+    return chapters.map(ch => ({
+      chapterId: ch.id,
+      chapterNumber: ch.chapterNumber,
+      volume: ch.volume,
+      chapterTitle: ch.chapterTitle,
+      language: ch.language,
+      isOneshot: ch.isOneshot,
+      uploadedAt: ch.createdAt,
+      uploader: ch.uploader ? { username: ch.uploader.username, uuid: ch.uploader.uuid } : null,
+      viewCount: ch.viewCount
+    }));
+  }
 
-  static _groupUploadsByChapter(uploads) {
-    const chapters = {};
-    uploads.forEach(upload => {
-      if (!chapters[upload.chapterId]) {
-        chapters[upload.chapterId] = {
-          chapterId: upload.chapterId,
-          malId: upload.malId,
-          title: upload.title,
-          chapterNumber: upload.chapterNumber,
-          volume: upload.volume,
-          chapterTitle: upload.chapterTitle,
-          language: upload.language,
-          isOneshot: upload.isOneshot,
-          status: upload.status,
-          rejectionReason: upload.rejectionReason,
-          uploader: upload.uploader,
-          createdAt: upload.createdAt,
-          pages: []
-        };
-      }
-      chapters[upload.chapterId].pages.push({
-        id: upload.id,
-        fileOrder: upload.fileOrder,
-        filePath: upload.filePath
-      });
+
+  static async getAllChaptersByStatus(status) {
+    const chapters = await db.Chapter.findAll({
+      where: { status },
+      include: [
+        { model: db.User, as: 'uploader', attributes: ['username', 'uuid'] },
+        { model: db.ChapterPage, as: 'pages', order: [['fileOrder', 'ASC']] }
+      ],
+      order: [['createdAt', 'DESC']]
     });
-    return Object.values(chapters);
+
+    return chapters.map(ch => ({
+      chapterId: ch.id,
+      malId: ch.malId,
+      title: ch.title,
+      chapterNumber: ch.chapterNumber,
+      volume: ch.volume,
+      chapterTitle: ch.chapterTitle,
+      language: ch.language,
+      isOneshot: ch.isOneshot,
+      status: ch.status,
+      rejectionReason: ch.rejectionReason,
+      uploader: ch.uploader,
+      createdAt: ch.createdAt,
+      pages: ch.pages.map(pg => ({
+        id: pg.id,
+        fileOrder: pg.fileOrder,
+        filePath: pg.filePath
+      }))
+    }));
   }
 
-  static async getAllPendingChapters() {
-    const uploads = await db.TitleUpload.findAll({
-      where: { status: 'pending' },
-      include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
-      order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
-    });
-    return this._groupUploadsByChapter(uploads);
+  static getAllPendingChapters() {
+    return this.getAllChaptersByStatus('pending');
   }
 
-  static async getAllRejectedChapters() {
-    const uploads = await db.TitleUpload.findAll({
-      where: { status: 'rejected' },
-      include: [{ model: db.User, as: 'uploader', attributes: ['username', 'uuid'] }],
-      order: [['chapterId', 'ASC'], ['fileOrder', 'ASC']]
-    });
-    return this._groupUploadsByChapter(uploads);
+  static getAllRejectedChapters() {
+    return this.getAllChaptersByStatus('rejected');
   }
 
-  static async reviewChapter(id, status, rejectionReason = null) {
-    const upload = await db.TitleUpload.findByPk(id);
-    if (!upload) throw new AppError('Upload not found', 404);
-    upload.status = status;
-    upload.rejectionReason = status === 'rejected' ? rejectionReason : null;
-    await upload.save();
-    return upload;
+
+  static async reviewChapter(chapterId, status, rejectionReason = null) {
+    const chapter = await db.Chapter.findByPk(chapterId);
+    if (!chapter) throw new AppError('Chapter not found', 404);
+    chapter.status = status;
+    chapter.rejectionReason = status === 'rejected' ? rejectionReason : null;
+    await chapter.save();
+    return chapter;
   }
+
 
 }
 

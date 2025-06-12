@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react';
 import { uploadAPI } from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { type TTitleChapter } from '../types/titles';
+import type { TTitle, TTitleChapter } from '../types/titles';
+import { getTitleDetails } from '../api/jikan';
 
 export default function ReviewUploadsPanel() {
   const { token } = useAuth();
   const [uploads, setUploads] = useState<TTitleChapter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalUploadId, setModalUploadId] = useState<number | null>(null);
+  const [modalUploadId, setModalUploadId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [view, setView] = useState<'pending' | 'rejected'>('pending');
-  const [coverImages, setCoverImages] = useState<Record<number, string>>({});
+
+  const [titleInfo, setTitleInfo] = useState<Record<number, TTitle>>({});
 
   useEffect(() => {
     if (view === 'pending') fetchPendingChapters();
@@ -20,25 +22,26 @@ export default function ReviewUploadsPanel() {
   }, [view]);
 
   useEffect(() => {
-    // Fetch cover images for all uploads
-    const fetchCoverImages = async () => {
-      const newCoverImages: Record<number, string> = {};
+    const fetchTitleDetails = async () => {
+      const newInfo: Record<number, TTitle> = { ...titleInfo };
+
       for (const upload of uploads) {
-        if (upload.malId) {
+        const malId = upload.malId;
+        if (malId && !newInfo[malId]) {
           try {
-            const response = await fetch(`https://api.jikan.moe/v4/titles/${upload.malId}`);
-            const data = await response.json();
-            newCoverImages[upload.malId] = data.data?.images?.jpg?.large_image_url || '';
-          } catch (error) {
-            console.error('Failed to fetch cover image:', error);
+            const data = await getTitleDetails(malId);
+            newInfo[malId] = data;
+          } catch {
+            toast.error(`Failed to fetch details for MAL ID ${malId}`);
           }
         }
       }
-      setCoverImages(newCoverImages);
+
+      setTitleInfo(newInfo);
     };
 
     if (uploads.length > 0) {
-      fetchCoverImages();
+      fetchTitleDetails();
     }
   }, [uploads]);
 
@@ -68,16 +71,13 @@ export default function ReviewUploadsPanel() {
     }
   };
 
-  // Approve/reject all pages in a chapter
   const handleReviewChapter = async (
-    pageIds: number[],
+    chapterId: string,
     status: 'approved' | 'rejected',
     reason?: string
   ) => {
     try {
-      await Promise.all(
-        pageIds.map((id) => uploadAPI.reviewChapter(id, status, reason, token || undefined))
-      );
+      await uploadAPI.reviewChapter(chapterId, status, reason, token || undefined);
       toast.success('Review submitted successfully');
       if (view === 'pending') fetchPendingChapters();
       else fetchRejectedChapters();
@@ -86,7 +86,8 @@ export default function ReviewUploadsPanel() {
     }
   };
 
-  const openRejectModal = (id: number) => {
+
+  const openRejectModal = (id: string) => {
     setModalUploadId(id);
     setRejectionReason('');
     setShowModal(true);
@@ -100,14 +101,11 @@ export default function ReviewUploadsPanel() {
 
   const submitRejection = () => {
     if (modalUploadId !== null) {
-      // Find the upload for the modal
-      const upload = uploads.find(u => u.pages && u.pages.some(p => p.id === modalUploadId));
-      if (upload && upload.pages) {
-        handleReviewChapter(upload.pages.map(p => p.id), 'rejected', rejectionReason);
-      }
+      handleReviewChapter(modalUploadId, 'rejected', rejectionReason);
       closeRejectModal();
     }
   };
+
 
   if (isLoading) {
     return <div className="text-center p-4">Loading...</div>;
@@ -130,77 +128,82 @@ export default function ReviewUploadsPanel() {
           Rejected
         </button>
       </div>
+
       <div className="grid gap-6">
-        {uploads.map((upload) => (
-          <div key={upload.chapterId} className="bg-white rounded-lg shadow p-6 flex gap-4">
-            {upload.malId && coverImages[upload.malId] && (
-              <img
-                src={coverImages[upload.malId]}
-                alt={`Cover for title ${upload.malId}`}
-                className="w-24 h-36 object-cover rounded-lg shadow mr-4"
-              />
-            )}
-            <div className="flex-1">
-              <h3 className="text-lg font-semibold">
-                MAL ID: {upload.malId ?? 'Unknown'}
-              </h3>
-              <p className="text-gray-600">
-                Chapter: {upload.chapterNumber ?? 'N/A'}
-                {upload.chapterTitle && ` - ${upload.chapterTitle}`}
-              </p>
-              <p className="text-sm text-gray-500">
-                Uploaded by: {upload.uploader.username}
-              </p>
-              <p className="text-sm text-gray-500">
-                Date: {new Date(upload.createdAt ?? upload.uploadedAt ?? '').toLocaleDateString()}
-              </p>
-              <p className="text-sm text-gray-500">
-                Pages: {upload.pages?.length ?? 0}
-              </p>
-              <div className="flex items-center space-x-2 mt-2">
-                {upload.status === 'pending' ? (
-                  <>
-                    <button
-                      onClick={() => upload.pages && handleReviewChapter(upload.pages.map(p => p.id), 'approved')}
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                    >
-                      Approve
-                    </button>
-                    <button
-                      onClick={() => upload.pages && openRejectModal(upload.pages[0].id)}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                    >
-                      Reject
-                    </button>
-                  </>
-                ) : (
-                  <span className={`px-3 py-1 rounded ${
-                    upload.status === 'approved'
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {upload.status.charAt(0).toUpperCase() + upload.status.slice(1)}
-                  </span>
-                )}
-              </div>
-              {upload.status === 'rejected' && upload.rejectionReason && (
-                <p className="mt-2 text-sm text-red-600">
-                  Reason: {upload.rejectionReason}
-                </p>
+        {uploads.map((upload) => {
+          const title = titleInfo[upload.malId ?? -1];
+
+          return (
+            <div key={upload.chapterId} className="bg-white rounded-lg shadow p-6 flex gap-4">
+              {title?.images?.jpg?.large_image_url && (
+                <img
+                  src={title.images.jpg.large_image_url}
+                  alt={`Cover for ${title.title}`}
+                  className="w-24 h-36 object-cover rounded-lg shadow mr-4"
+                />
               )}
-              <div className="mt-4 flex gap-4">
-                <a
-                  href={`/titles/${upload.malId}/${upload.chapterId}/preview`}
-                  className="text-blue-600 hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Preview Chapter
-                </a>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold">{title?.title ?? 'Unknown Title'}</h3>
+                <p className="text-gray-600">
+                  Chapter: {upload.chapterNumber ?? 'N/A'}
+                  {upload.chapterTitle && ` - ${upload.chapterTitle}`}
+                </p>
+                <p className="text-sm text-gray-500">Uploaded by: {upload.uploader.username}</p>
+                <p className="text-sm text-gray-500">
+                  Date:{' '}
+                  {new Date(upload.createdAt ?? upload.uploadedAt ?? '').toLocaleDateString()}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Pages: {upload.pages?.length ?? 0}
+                </p>
+                <div className="flex items-center space-x-2 mt-2">
+                  {upload.status === 'pending' ? (
+                    <>
+                      <button
+                        onClick={() => handleReviewChapter(upload.chapterId, 'approved')}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                      >
+                        Approve
+                      </button>
+
+                      <button
+                        onClick={() => openRejectModal(upload.chapterId)}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Reject
+                      </button>
+
+                    </>
+                  ) : (
+                    <span
+                      className={`px-3 py-1 rounded ${upload.status === 'approved'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-red-100 text-red-800'
+                        }`}
+                    >
+                      {upload.status.charAt(0).toUpperCase() + upload.status.slice(1)}
+                    </span>
+                  )}
+                </div>
+
+                {upload.status === 'rejected' && upload.rejectionReason && (
+                  <p className="mt-2 text-sm text-red-600">Reason: {upload.rejectionReason}</p>
+                )}
+
+                <div className="mt-4 flex gap-4">
+                  <a
+                    href={`/titles/${upload.malId}/${upload.chapterId}/preview`}
+                    className="text-blue-600 hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Preview Chapter
+                  </a>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {showModal && (
@@ -234,3 +237,4 @@ export default function ReviewUploadsPanel() {
     </div>
   );
 }
+

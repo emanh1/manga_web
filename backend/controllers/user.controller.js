@@ -73,31 +73,42 @@ export const getUserUploads = async (req, res, next) => {
     } else {
       userId = req.user.uuid;
     }
-    const uploads = await db.TitleUpload.findAll({
+
+    const chapters = await db.Chapter.findAll({
       where: { uploaderId: userId },
       order: [['malId', 'ASC'], ['volume', 'ASC'], ['chapterNumber', 'ASC']],
+      include: [
+        {
+          model: db.User,
+          as: 'uploader',
+          attributes: ['uuid', 'username'],
+        },
+      ],
     });
+
     const grouped = {};
-    for (const upload of uploads) {
-      if (!grouped[upload.malId]) {
-        grouped[upload.malId] = {
-          malId: upload.malId,
-          title: upload.title,
+    for (const chapter of chapters) {
+      if (!grouped[chapter.malId]) {
+        grouped[chapter.malId] = {
+          malId: chapter.malId,
+          title: chapter.title,
           chapters: []
         };
       }
-      grouped[upload.malId].chapters.push({
-        chapterId: upload.chapterId,
-        chapterNumber: upload.chapterNumber,
-        volume: upload.volume,
-        chapterTitle: upload.chapterTitle,
-        language: upload.language,
-        isOneshot: upload.isOneshot,
-        uploadedAt: upload.createdAt
+      grouped[chapter.malId].chapters.push({
+        chapterId: chapter.id,
+        chapterNumber: chapter.chapterNumber,
+        volume: chapter.volume,
+        chapterTitle: chapter.chapterTitle,
+        language: chapter.language,
+        isOneshot: chapter.isOneshot,
+        uploadedAt: chapter.createdAt,
       });
     }
+
     res.json({ uploads: Object.values(grouped) });
   } catch (error) {
     next(new AppError(error.message, 500));
   }
 };
+
