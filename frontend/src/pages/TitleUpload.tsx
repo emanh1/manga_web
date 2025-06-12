@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTitleDetails } from '../hooks/useTitleDetails';
-import toast from 'react-hot-toast';
+import { toastUtil } from '../components/toast';
 import FileUploadManager from '../components/FileUploadManager';
 import axiosInstance from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
@@ -126,7 +126,7 @@ export default function TitleUpload() {
         }
       });
 
-      toast.success('Upload successful');
+      toastUtil.success('Upload successful');
       navigate('/');
     } catch (error: any) {
       console.error('Upload error:', error);
@@ -136,9 +136,9 @@ export default function TitleUpload() {
           name: err.file,
           error: err.message
         })));
-        toast.error('Some files failed to upload. Please check the error list below.');
+        toastUtil.error('Some files failed to upload. Please check the error list below.');
       } else {
-        toast.error(error.response?.data?.message || 'Failed to upload title');
+        toastUtil.error(error.response?.data?.message || 'Failed to upload title');
       }
     } finally {
       setIsLoading(false);

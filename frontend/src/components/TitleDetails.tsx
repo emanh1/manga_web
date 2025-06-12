@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import type { TTitleChapter, TMALEntity, TTitle } from "../types/titles";
-import toast from 'react-hot-toast';
+import { toastUtil } from './toast';
 import { useAuth } from "../contexts/AuthContext";
 import { uploadAPI } from "../api/axios";
 import { useTitleDetails } from "../hooks/useTitleDetails";
@@ -320,7 +320,7 @@ const TitleDetails: React.FC = () => {
     uploadAPI.getChapters(titleId)
       .then((chaptersData) => setChapters(chaptersData.chapters))
       .catch(() => {
-        toast.error('Failed to load chapters');
+        toastUtil.error('Failed to load chapters');
         setChapters([]);
       })
       .finally(() => setLoading(false));

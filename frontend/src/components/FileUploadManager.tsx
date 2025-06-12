@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import toast from 'react-hot-toast';
+import { toastUtil } from './toast';
 
 interface UploadPreview {
   file: File;
@@ -58,7 +58,7 @@ export default function FileUploadManager({ files, setFiles }: Props) {
     });
 
     if (errors.length > 0) {
-      toast.error(
+      toastUtil.error(
         <div>
           <p>Some files were not added:</p>
           <ul className="list-disc pl-4 mt-2">
@@ -72,7 +72,7 @@ export default function FileUploadManager({ files, setFiles }: Props) {
 
     if (newFiles.length > 0) {
       setFiles(prev => [...prev, ...newFiles]);
-      toast.success(`Added ${newFiles.length} file(s)`);
+      toastUtil.success(`Added ${newFiles.length} file(s)`);
     }
     
     e.target.value = '';

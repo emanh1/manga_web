@@ -2,11 +2,10 @@ import React from "react";
 import { useParams } from "react-router-dom";
 import { uploadAPI } from "../api/axios";
 import { useChapterReader } from "../utils/useChapterReader";
-import toast from 'react-hot-toast';
+import { toastUtil } from './toast';
 import { useIPFSGateway } from '../contexts/IPFSGatewayContext';
 import { LoadingSpinner } from './LoadingSpinner';
 import { FaSyncAlt } from 'react-icons/fa';
-import type { TTitlePage } from "../types/titles";
 
 const PRESET_GATEWAYS = [
   "https://ipfs.io/ipfs/",
@@ -72,9 +71,9 @@ const PreviewReader: React.FC = () => {
             if (retryIndex < PRESET_GATEWAYS.length - 1) {
               setRetryIndex(retryIndex + 1);
               setImgLoading(true);
-              toast.error("Failed to load image. Retrying with alternate gateway...");
+              toastUtil.error("Failed to load image. Retrying with alternate gateway...");
             } else {
-              toast.error("Image failed to load on all gateways");
+              toastUtil.error("Image failed to load on all gateways");
               setImgLoading(false);
               setImgFailed(true);
             }

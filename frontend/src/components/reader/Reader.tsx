@@ -2,7 +2,7 @@ import React from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { uploadAPI } from "../../api/axios";
 import { useChapterReader } from "../../utils/useChapterReader";
-import toast from 'react-hot-toast';
+import { toastUtil } from '../toast';
 import ReaderHeader from "./ReaderHeader";
 import ReaderImage from "./ReaderImage";
 import ReaderMenu from "./ReaderMenu";
@@ -110,7 +110,7 @@ const ReaderContent: React.FC = () => {
               loading={imgLoading}
               onLoad={() => setImgLoading(false)}
               onError={() => {
-                toast.error("Image failed to load.");
+                toastUtil.error("Image failed to load.");
                 setImgLoading(false);
               }}
               onPrev={handlePrev}

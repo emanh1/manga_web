@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { uploadAPI } from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
-import toast from 'react-hot-toast';
+import { toastUtil } from './toast';
 import type { TTitle, TTitleChapter } from '../types/titles';
 import { getTitleDetails } from '../api/jikan';
 
@@ -32,7 +32,7 @@ export default function ReviewUploadsPanel() {
             const data = await getTitleDetails(malId);
             newInfo[malId] = data;
           } catch {
-            toast.error(`Failed to fetch details for MAL ID ${malId}`);
+            toastUtil.error(`Failed to fetch details for MAL ID ${malId}`);
           }
         }
       }
@@ -51,7 +51,7 @@ export default function ReviewUploadsPanel() {
       const response = await uploadAPI.getAllPendingChapters();
       setUploads(response.chapters || []);
     } catch {
-      toast.error('Failed to fetch pending chapters');
+      toastUtil.error('Failed to fetch pending chapters');
       setUploads([]);
     } finally {
       setIsLoading(false);
@@ -64,7 +64,7 @@ export default function ReviewUploadsPanel() {
       const response = await uploadAPI.getAllRejectedChapters();
       setUploads(response.chapters || []);
     } catch {
-      toast.error('Failed to fetch rejected chapters');
+      toastUtil.error('Failed to fetch rejected chapters');
       setUploads([]);
     } finally {
       setIsLoading(false);
@@ -78,11 +78,11 @@ export default function ReviewUploadsPanel() {
   ) => {
     try {
       await uploadAPI.reviewChapter(chapterId, status, reason, token || undefined);
-      toast.success('Review submitted successfully');
+      toastUtil.success('Review submitted successfully');
       if (view === 'pending') fetchPendingChapters();
       else fetchRejectedChapters();
     } catch {
-      toast.error('Failed to submit review');
+      toastUtil.error('Failed to submit review');
     }
   };
 
