@@ -26,13 +26,13 @@ const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'uploads'>(tabParam === 'uploads' ? 'uploads' : 'profile');
 
   useEffect(() => {
-    const endpoint = `/user/profile/${uuid}`;
+    const endpoint = `/user/${uuid}`;
     axiosInstance.get(endpoint)
       .then(res => {
-        setProfile(res.data);
-        setBio(res.data.bio || '');
-        setAvatarUrl(res.data.avatarUrl || '');
-        setUsername(res.data.username || '');
+        setProfile(res.data.user);
+        setBio(res.data.user.bio || '');
+        setAvatarUrl(res.data.user.avatarUrl || '');
+        setUsername(res.data.user.username || '');
       });
   }, [token, uuid]);
 
@@ -42,7 +42,7 @@ const Profile: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      const res = await axiosInstance.put(`/user/profile/${uuid}`, { bio, avatarUrl, username });
+      const res = await axiosInstance.put(`/user/${uuid}`, { bio, avatarUrl, username });
       setProfile(res.data.user);
       setEditing(false);
       setMessage('Profile updated!');

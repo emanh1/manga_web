@@ -36,7 +36,7 @@ const ChapterListItem: React.FC<{
         {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
       </div>
       <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-        <span><FaClock className="inline-block align-middle mr-1 text-sm"/> {formatDistanceToNow(new Date(chapter.uploadedAt), {addSuffix: true})}</span>
+        <span><FaClock className="inline-block align-middle mr-1 text-sm"/> {formatDistanceToNow(new Date(chapter.createdAt), {addSuffix: true})}</span>
         <span>
           <FaEye className="inline-block align-middle mr-1 text-sm"/> {chapter.viewCount}
         </span>
@@ -45,7 +45,7 @@ const ChapterListItem: React.FC<{
     <div className="flex flex-col items-end min-w-[120px]">
       <div className="text-xs text-gray-600">
         <Link
-          to={`/profile/${chapter.uploader.uuid}`}
+          to={`/profile/${chapter.uploader.userId}`}
           className="text-purple-600 hover:underline"
           onClick={e => e.stopPropagation()}
         >
