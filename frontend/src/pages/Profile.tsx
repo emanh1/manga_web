@@ -3,13 +3,7 @@ import axiosInstance from '../api/axios';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams, useSearchParams } from 'react-router-dom';
 import YourUploadsTab from '../components/YourUploadsTab';
-
-interface ProfileData {
-  uuid: string;
-  username: string;
-  bio: string;
-  avatarUrl: string;
-}
+import type { User } from '../types/user';
 
 const Profile: React.FC = () => {
   const { user, token } = useAuth();
@@ -17,7 +11,7 @@ const Profile: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
   const isOwnProfile = !uuid || uuid === (user as any)?.uuid;
-  const [profile, setProfile] = useState<ProfileData | null>(null);
+  const [profile, setProfile] = useState<User | null>(null);
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [username, setUsername] = useState('');
@@ -26,14 +20,24 @@ const Profile: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'uploads'>(tabParam === 'uploads' ? 'uploads' : 'profile');
 
   useEffect(() => {
-    const endpoint = `/user/${uuid}`;
-    axiosInstance.get(endpoint)
-      .then(res => {
-        setProfile(res.data.user);
-        setBio(res.data.user.bio || '');
-        setAvatarUrl(res.data.user.avatarUrl || '');
-        setUsername(res.data.user.username || '');
-      });
+    if (!token || !uuid) return;
+
+    const fetchProfile = async () => {
+      try {
+        const res = await axiosInstance.get(`/user/${uuid}`);
+        const user: User = res.data.user;
+        if (user) {
+          setProfile(user);
+          setUsername(user.username || '');
+          setBio(user.bio || '');
+          setAvatarUrl(user.avatarUrl || '');
+        }
+      } catch (error) {
+        console.error('Error fetching profile', error);
+      }
+    };
+
+    fetchProfile();
   }, [token, uuid]);
 
   useEffect(() => {
@@ -158,7 +162,7 @@ const Profile: React.FC = () => {
         )}
         {activeTab === 'uploads' && (
           <div className="w-full">
-            <YourUploadsTab uuid={profile.uuid} />
+            <YourUploadsTab uuid={profile.userId} />
           </div>
         )}
       </div>

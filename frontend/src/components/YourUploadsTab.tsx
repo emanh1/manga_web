@@ -1,58 +1,72 @@
 import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { getTitleDetails } from '../api/jikan';
+import type { TTitle, TTitleChapter } from '../types/titles';
 import axiosInstance from '../api/axios';
-import { Link } from 'react-router-dom';
-import type { TTitleChapter } from '../types/titles';
 
-interface UserTitle {
-  malId: number;
-  title: string;
+interface MangaWithChapters {
+  title: TTitle;
   chapters: TTitleChapter[];
 }
 
-interface YourUploadsTabProps {
-  uuid?: string;
-}
-
-export default function YourUploadsTab({ uuid }: YourUploadsTabProps) {
-  const [uploads, setUploads] = useState<UserTitle[]>([]);
+export default function YourUploadsTab({ uuid }: { uuid?: string }) {
+  const [mangaList, setMangaList] = useState<MangaWithChapters[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  const navigate = useNavigate();
   useEffect(() => {
-    const fetchUploads = async () => {
+    if (!uuid) return;
+
+    (async () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await axiosInstance.get(uuid ? `/user/uploads/${uuid}` : '/user/uploads');
-        setUploads(res.data.uploads);
+        const res = await axiosInstance.get(`/user/${uuid}/uploads`);
+        const uploads = res.data.uploads;
+
+        const grouped: { [key: number]: TTitleChapter[] } = {};
+
+        for (const chap of uploads) {
+          if (chap.malId && !grouped[chap.malId]) grouped[chap.malId] = [];
+
+          if (chap.malId) {
+            grouped[chap.malId].push(chap);
+          }
+        }
+
+        const promises = Object.keys(grouped).map(async (key) => {
+          const malId = Number(key);
+          const title = await getTitleDetails(malId);
+          return { title, chapters: grouped[malId] };
+        });
+
+        const results = await Promise.all(promises);
+        setMangaList(results);
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Failed to fetch uploads');
+        setError(err?.message || 'Failed to fetch');
       } finally {
         setLoading(false);
       }
-    };
-    fetchUploads();
+    })();
   }, [uuid]);
 
-  if (loading) return <div className="p-8 text-center">Loading...</div>;
-  if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
-
-  if (uploads.length === 0) {
-    return <div className="p-8 text-center">No uploads found.</div>;
-  }
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div className="text-red-600">{error}</div>;
+  if (mangaList.length === 0) return <div>No uploads found.</div>;
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h2 className="text-xl font-bold mb-6">Uploads</h2>
-      <div className="space-y-8">
-        {uploads.map(title => (
-          <div key={title.malId} className="bg-white rounded-lg shadow p-4">
-            <div className="flex items-center mb-2">
-              <h3 className="text-lg font-semibold flex-1">
-                <Link to={`/titles/${title.malId}`}>{title.title}</Link>
+      <h2 className="text-xl font-bold mb-6">Your Manga</h2>
+      <div className="space-y-6">
+        {mangaList.map(({ title, chapters }) => (
+          <div key={title.mal_id} className="bg-gray-50 p-4 rounded-md shadow flex">
+            <img src={title.images.jpg.large_image_url} alt={title.title} className="w-32 mr-4 rounded-md object-cover" />
+
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold mb-4">
+                <Link to={`/titles/${title.mal_id}`}>{title.title}</Link>
               </h3>
-            </div>
-            <div className="overflow-x-auto">
+
               <table className="min-w-full text-sm">
                 <thead>
                   <tr className="bg-gray-100">
@@ -64,20 +78,19 @@ export default function YourUploadsTab({ uuid }: YourUploadsTabProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {title.chapters.map(chap => (
+                  {chapters?.map((chap) => (
                     <tr
                       key={chap.chapterId}
-                      className="border-b last:border-0 cursor-pointer hover:bg-purple-50 transition"
-                      onClick={() => window.location.href = `/titles/${title.malId}/${chap.chapterId}`}
-                      tabIndex={0}
-                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') window.location.href = `/titles/${title.malId}/${chap.chapterId}`; }}
-                      aria-label={`Go to chapter ${chap.chapterNumber ?? ''} ${chap.chapterTitle ?? ''}`}
+                      className="border-b last:border-0 transition hover:bg-gray-100"
+                      onClick={() => navigate(`/titles/${title.mal_id}/${chap.chapterId}`)}
                     >
                       <td className="px-2 py-1">{chap.volume ?? '-'}</td>
                       <td className="px-2 py-1">{chap.chapterNumber ?? '-'}</td>
                       <td className="px-2 py-1">{chap.chapterTitle ?? '-'}</td>
                       <td className="px-2 py-1">{chap.language}</td>
-                      <td className="px-2 py-1">{new Date(chap.uploadedAt).toLocaleString()}</td>
+                      <td className="px-2 py-1">
+                        {new Date(chap.createdAt).toLocaleString()}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
