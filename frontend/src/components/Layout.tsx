@@ -90,7 +90,7 @@ const Layout: React.FC<Props> = ({ children }) => {
                   {!isLoading && user && (
                     <>
                       <Link
-                        to={`/profile/${user.uuid}`}
+                        to={`/profile/${user.userId}`}
                         className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                         onClick={() => setMenuOpen(false)}
                       >

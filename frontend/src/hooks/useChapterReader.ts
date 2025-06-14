@@ -1,17 +1,17 @@
 import { useEffect, useState, useCallback } from "react";
-import { retryOperation } from "./retry";
+import { retryOperation } from "../utils/retry";
 import { toastUtil } from "../components/toast";
-import type { TTitleChapter, TTitlePage } from "../types/titles";
+import type { TTitleChapter, TChapterPage } from "../types/titles";
 
 interface UseChapterReaderOptions {
   titleId?: string;
   chapterId?: string;
-  fetchChapterFn: (titleId: string, chapterId: string) => Promise<TTitleChapter>;
+  fetchChapterFn: (titleId: string, chapterId: string) => Promise<{ message: string; chapter: TTitleChapter }>;
 }
 
 export function useChapterReader({ titleId, chapterId, fetchChapterFn }: UseChapterReaderOptions) {
   const [chapter, setChapter] = useState<TTitleChapter | null>(null);
-  const [pages, setPages] = useState<TTitlePage[]>([]);
+  const [pages, setPages] = useState<TChapterPage[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -27,13 +27,13 @@ export function useChapterReader({ titleId, chapterId, fetchChapterFn }: UseChap
     if (!titleId || !chapterId) return;
     setLoading(true);
     try {
-      const response = await retryOperation(
+      const {chapter} = await retryOperation(
         () => fetchChapterFn(titleId, chapterId),
         3,
         1000
       );
-      setChapter(response);
-      setPages(response.pages ?? []);
+      setChapter(chapter);
+      setPages(chapter.pages ?? []);
       setCurrentPage(0);
     } catch {
       toastUtil.error("Failed to load chapter after multiple attempts");
