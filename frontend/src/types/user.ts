@@ -1,5 +1,5 @@
 export interface User {
-  uuid: string;
+  userId: string;
   username: string;
   email: string;
   role: 'user' | 'admin';

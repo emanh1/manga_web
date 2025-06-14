@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 import { titleAPI } from "../api/axios";
-import { useChapterReader } from "../utils/useChapterReader";
+import { useChapterReader } from "../hooks/useChapterReader";
 import { toastUtil } from './toast';
 import { useIPFSGateway } from '../contexts/IPFSGatewayContext';
 import { LoadingSpinner } from './LoadingSpinner';

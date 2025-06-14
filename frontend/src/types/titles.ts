@@ -62,7 +62,7 @@ export interface TTitleRecommendation {
   };
 }
 
-export interface TTitlePage {
+export interface TChapterPage {
   id: number;
   fileOrder: number;
   filePath: string;
@@ -71,16 +71,15 @@ export interface TTitlePage {
 export interface TTitleChapter {
   chapterId: string;
   malId: number | null;
-  volume: number | null;
+  volume?: number | null;
   chapterNumber?: number | null;
   chapterTitle?: string | null;
   language: string;
   isOneshot: boolean;
-  uploadedAt: string;
   createdAt: string;
   uploader: User; 
   status: 'pending' | 'approved' | 'rejected';
   rejectionReason?: string;
-  pages: TTitlePage[];
-  viewCount: number; 
+  pages: TChapterPage[];
+  viewCount: number;
 }

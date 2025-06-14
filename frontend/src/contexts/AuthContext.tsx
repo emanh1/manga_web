@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (storedToken) {
         try {
           const userData = await authAPI.getMe();
-          setUser(userData);
+          setUser(userData.user);
         } catch (error) {
           localStorage.removeItem('token');
           setToken(null);

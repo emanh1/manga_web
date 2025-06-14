@@ -100,7 +100,6 @@ export default function TitleUpload() {
       setFailedFiles([]);
 
       const formData = new FormData();
-      formData.append('title', data.title);
       if (data.malId) formData.append('malId', String(data.malId));
       if (data.volume !== undefined) formData.append('volume', String(data.volume));
       if (data.chapterNumber !== undefined) formData.append('chapterNumber', String(data.chapterNumber));
@@ -113,7 +112,7 @@ export default function TitleUpload() {
         formData.append('fileOrder', String(index + 1));
       });
       if (user) {
-        formData.append('userId', user.uuid);
+        formData.append('uploaderId', user.userId);
       }
 
       await uploadAPI.uploadChapter(formData, (progressEvent) => {
