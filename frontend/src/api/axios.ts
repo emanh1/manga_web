@@ -25,25 +25,10 @@ window.addEventListener('storage', (event) => {
   }
 });
 
-axiosInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Response interceptor
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
       window.location.href = '/login';
     } else if (error.response?.status === 403) {
       window.location.href = '/';
@@ -102,11 +87,9 @@ export const titleAPI = {
     const response = await axiosInstance.get('/titles/rejected_chapters');
     return response.data;
   },
-  reviewChapter: async (chapterId: string, status: 'approved' | 'rejected', rejectionReason?: string, token?: string) => {
+  reviewChapter: async (titleId: string | number, chapterId: string, status: 'approved' | 'rejected', rejectionReason?: string) => {
     const response = await axiosInstance.post(
-      `/titles/review_chapter/${chapterId}`,
-      { status, rejectionReason },
-      token ? { headers: { Authorization: `Bearer ${token}` } } : undefined
+      `/titles/${titleId}/${chapterId}/review?status=${status}&rejectionReason=${encodeURIComponent(rejectionReason || '')}`,
     );
     return response.data;
   },
