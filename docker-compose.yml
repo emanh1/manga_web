@@ -1,49 +1,7 @@
 services:
-  backend:
-    build: ./backend
-    restart: always
-    environment:
-      - DB_HOST=${DB_HOST}
-      - DB_PORT=${DB_PORT}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_NAME=${DB_NAME}
-    depends_on:
-      - db
-
-  frontend:
+  manga_web:
     build:
-      context: ./frontend
-    restart: always
-    depends_on:
-      - backend
-
-  db:
-    image: postgres
-    restart: always
-    environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      context: .
     ports:
-      - "${DB_PORT}:5432"
-    volumes:
-      - ./postgres-init:/docker-entrypoint-initdb.d
-      - pgdata:/var/lib/postgresql/data
-
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    volumes:
-      - ./pgadmin/servers.json:/pgadmin4/servers.json
-    ports:
-      - "${PGADMIN_PORT}:80"
-    depends_on:
-      - db
-
-volumes:
-  pgdata:
+      - "80:80"
+    restart: unless-stopped
