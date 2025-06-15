@@ -10,7 +10,7 @@ const Profile: React.FC = () => {
   const { uuid } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const isOwnProfile = !uuid || uuid === (user as any)?.uuid;
+  const isOwnProfile = uuid === user?.userId;
   const [profile, setProfile] = useState<User | null>(null);
   const [bio, setBio] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');

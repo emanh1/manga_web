@@ -1,51 +1,45 @@
 import { useState, useEffect } from 'react';
 import { titleAPI } from '../api/axios';
-import { useAuth } from '../contexts/AuthContext';
 import { toastUtil } from './toast';
 import type { TTitle, TTitleChapter } from '../types/titles';
 import { getTitleDetails } from '../api/jikan';
+import { Link } from 'react-router';
 
 export default function ReviewUploadsPanel() {
-  const { token } = useAuth();
   const [uploads, setUploads] = useState<TTitleChapter[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [modalUploadId, setModalUploadId] = useState<string | null>(null);
+  const [modalUploadId, setModalUploadId] = useState<{ malId: number | null; chapterId: string | null }>({ malId: null, chapterId: null });
   const [rejectionReason, setRejectionReason] = useState('');
   const [view, setView] = useState<'pending' | 'rejected'>('pending');
-
   const [titleInfo, setTitleInfo] = useState<Record<number, TTitle>>({});
 
   useEffect(() => {
-    if (view === 'pending') fetchPendingChapters();
-    else fetchRejectedChapters();
+    view === 'pending' ? fetchPendingChapters() : fetchRejectedChapters();
   }, [view]);
 
   useEffect(() => {
-    const fetchTitleDetails = async () => {
-      const newInfo: Record<number, TTitle> = { ...titleInfo };
-
-      for (const upload of uploads) {
-        const malId = upload.malId;
-        if (malId && !newInfo[malId]) {
-          try {
-            const data = await getTitleDetails(malId);
-            newInfo[malId] = data;
-          } catch {
-            toastUtil.error(`Failed to fetch details for MAL ID ${malId}`);
-          }
-        }
-      }
-
-      setTitleInfo(newInfo);
-    };
-
     if (uploads.length > 0) {
-      fetchTitleDetails();
+      fetchTitleDetails(uploads);
     }
   }, [uploads]);
 
-  const fetchPendingChapters = async () => {
+  async function fetchTitleDetails(chapters: TTitleChapter[]) {
+    const newInfo: Record<number, TTitle> = { ...titleInfo };
+    for (const upload of chapters) {
+      const malId = upload.malId;
+      if (malId && !newInfo[malId]) {
+        try {
+          newInfo[malId] = await getTitleDetails(malId);
+        } catch {
+          toastUtil.error(`Failed to fetch details for MAL ID ${malId}`);
+        }
+      }
+    }
+    setTitleInfo(newInfo);
+  }
+
+  async function fetchPendingChapters() {
     setIsLoading(true);
     try {
       const response = await titleAPI.getAllPendingChapters();
@@ -53,12 +47,13 @@ export default function ReviewUploadsPanel() {
     } catch {
       toastUtil.error('Failed to fetch pending chapters');
       setUploads([]);
+
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const fetchRejectedChapters = async () => {
+  async function fetchRejectedChapters() {
     setIsLoading(true);
     try {
       const response = await titleAPI.getAllRejectedChapters();
@@ -66,46 +61,46 @@ export default function ReviewUploadsPanel() {
     } catch {
       toastUtil.error('Failed to fetch rejected chapters');
       setUploads([]);
+
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
-  const handleReviewChapter = async (
+  async function handleReviewChapter(
+    malId: number,
     chapterId: string,
     status: 'approved' | 'rejected',
     reason?: string
-  ) => {
+  ) {
     try {
-      await titleAPI.reviewChapter(chapterId, status, reason, token || undefined);
+      await titleAPI.reviewChapter(malId, chapterId, status, reason);
       toastUtil.success('Review submitted successfully');
-      if (view === 'pending') fetchPendingChapters();
-      else fetchRejectedChapters();
+      view === 'pending' ? fetchPendingChapters() : fetchRejectedChapters();
     } catch {
       toastUtil.error('Failed to submit review');
     }
-  };
+  }
 
-
-  const openRejectModal = (id: string) => {
-    setModalUploadId(id);
+  function openRejectModal(malId: number, chapterId: string) {
+    setModalUploadId({ malId, chapterId });
     setRejectionReason('');
     setShowModal(true);
-  };
+  }
 
-  const closeRejectModal = () => {
+  function closeRejectModal() {
     setShowModal(false);
-    setModalUploadId(null);
+    setModalUploadId({ malId: null, chapterId: null });
     setRejectionReason('');
-  };
+  }
 
-  const submitRejection = () => {
-    if (modalUploadId !== null) {
-      handleReviewChapter(modalUploadId, 'rejected', rejectionReason);
+  function submitRejection() {
+    const { malId, chapterId } = modalUploadId;
+    if (malId && chapterId) {
+      handleReviewChapter(malId, chapterId, 'rejected', rejectionReason);
       closeRejectModal();
     }
-  };
-
+  }
 
   if (isLoading) {
     return <div className="text-center p-4">Loading...</div>;
@@ -132,109 +127,110 @@ export default function ReviewUploadsPanel() {
       <div className="grid gap-6">
         {uploads.map((upload) => {
           const title = titleInfo[upload.malId ?? -1];
-
           return (
             <div key={upload.chapterId} className="bg-white rounded-lg shadow p-6 flex gap-4">
               {title?.images?.jpg?.large_image_url && (
                 <img
                   src={title.images.jpg.large_image_url}
-                  alt={`Cover for ${title.title}`}
-                  className="w-24 h-36 object-cover rounded-lg shadow mr-4"
+                  alt={`Cover for ${title?.title}`}
+                  className="w-24 h-36 object-cover rounded mr-4"
                 />
               )}
+
               <div className="flex-1">
                 <h3 className="text-lg font-semibold">{title?.title ?? 'Unknown Title'}</h3>
                 <p className="text-gray-600">
-                  Chapter: {upload.chapterNumber ?? 'N/A'}
-                  {upload.chapterTitle && ` - ${upload.chapterTitle}`}
-                </p>
-                <p className="text-sm text-gray-500">Uploaded by: {upload.uploader.username}</p>
-                <p className="text-sm text-gray-500">
-                  Date:{' '}
-                  {new Date(upload.createdAt ?? upload.uploadedAt ?? '').toLocaleDateString()}
+                  Chapter: {upload.chapterNumber ?? ''} {upload.chapterTitle && `- ${upload.chapterTitle}`}
                 </p>
                 <p className="text-sm text-gray-500">
-                  Pages: {upload.pages?.length ?? 0}
+                  Uploaded by:{' '}
+                  <Link to={`/profile/${upload.uploader?.userId}`} className="text-blue-600 hover:underline">
+                    {upload.uploader?.username}
+                  </Link>
                 </p>
+                <p className="text-sm text-gray-500">
+                  Date:{' '}{new Date(upload.createdAt).toLocaleDateString()}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Pages:{' '}{upload.pages?.length ?? 0}
+                </p>
+
                 <div className="flex items-center space-x-2 mt-2">
                   {upload.status === 'pending' ? (
                     <>
                       <button
-                        onClick={() => handleReviewChapter(upload.chapterId, 'approved')}
-                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                      >
+                        onClick={() => handleReviewChapter(upload.malId, upload.chapterId, 'approved')}
+                        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                         Approve
                       </button>
-
                       <button
-                        onClick={() => openRejectModal(upload.chapterId)}
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                      >
+                        onClick={() => openRejectModal(upload.malId, upload.chapterId)}
+                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                         Reject
                       </button>
-
                     </>
                   ) : (
                     <span
                       className={`px-3 py-1 rounded ${upload.status === 'approved'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                        }`}
-                    >
-                      {upload.status.charAt(0).toUpperCase() + upload.status.slice(1)}
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-red-100 text-red-800'
+                        }`}>
+                      {upload.status?.charAt(0).toUpperCase() + upload.status?.slice(1)}
                     </span>
                   )}
-                </div>
 
-                {upload.status === 'rejected' && upload.rejectionReason && (
-                  <p className="mt-2 text-sm text-red-600">Reason: {upload.rejectionReason}</p>
-                )}
+                  {upload.status === 'rejected' && upload.rejectionReason && (
+                    <p className="mt-2 text-sm text-red-600">
+                      Reason: {upload.rejectionReason}
+                    </p>
+                  )}
 
-                <div className="mt-4 flex gap-4">
-                  <a
-                    href={`/titles/${upload.malId}/${upload.chapterId}/preview`}
-                    className="text-blue-600 hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Preview Chapter
-                  </a>
+                  <div className="mt-4">
+                    <a
+                      href={`/titles/${upload.malId}/${upload.chapterId}/preview`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline">
+                      Preview Chapter
+                    </a>
+                  </div>
                 </div>
               </div>
             </div>
-          );
+          )
         })}
       </div>
 
       {showModal && (
         <div className="fixed inset-0 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-4">Rejection Reason</h3>
+            <h3 className="text-lg font-semibold mb-4">
+              Rejection Reason
+            </h3>
             <textarea
               value={rejectionReason}
               onChange={(e) => setRejectionReason(e.target.value)}
-              className="w-full p-2 border rounded mb-4"
               rows={3}
               placeholder="Enter rejection reason"
+              className="w-full p-2 border rounded mb-4"
             />
             <div className="flex justify-end space-x-2">
               <button
                 onClick={closeRejectModal}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-              >
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
                 Cancel
               </button>
               <button
                 onClick={submitRejection}
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-              >
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
                 Submit Rejection
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
-  );
+  )
 }
 
