@@ -31,7 +31,7 @@ const Settings: React.FC = () => {
     setError('');
     setMessage('');
     try {
-      await axiosInstance.put('/user/profile/' + user?.uuid, { email });
+      await axiosInstance.put('/user/profile/' + user?.userId, { email });
       setMessage('Email updated!');
     } catch {
       setError('Failed to update email.');
