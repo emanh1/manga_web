@@ -70,7 +70,7 @@ export interface TChapterPage {
 
 export interface TTitleChapter {
   chapterId: string;
-  malId: number | null;
+  malId: number;
   volume?: number | null;
   chapterNumber?: number | null;
   chapterTitle?: string | null;
