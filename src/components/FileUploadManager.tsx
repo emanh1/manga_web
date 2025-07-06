@@ -12,7 +12,7 @@ interface Props {
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif'];
 
 export default function FileUploadManager({ files, setFiles }: Props) {
   const [previews, setPreviews] = useState<UploadPreview[]>([]);
@@ -33,7 +33,7 @@ export default function FileUploadManager({ files, setFiles }: Props) {
 
   const validateFile = (file: File): string | null => {
     if (!ALLOWED_TYPES.includes(file.type)) {
-      return 'Only JPEG and PNG files are allowed';
+      return 'Only JPEG, PNG and GIF files are allowed';
     }
     if (file.size > MAX_FILE_SIZE) {
       return `File size must be less than ${MAX_FILE_SIZE / (1024 * 1024)}MB`;
@@ -123,7 +123,7 @@ export default function FileUploadManager({ files, setFiles }: Props) {
 
         <input
           type="file"
-          accept="image/jpeg,image/png"
+          accept="image/jpeg,image/png,image/gif"
           multiple
           hidden
           ref={inputRef}

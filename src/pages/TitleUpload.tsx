@@ -23,8 +23,8 @@ const uploadSchema = z.object({
     .refine((files) => files.length >= 1, 'At least one file is required')
     .refine((files) =>
       Array.from(files).every(file =>
-        ['image/jpeg', 'image/png'].includes(file.type)
-      ), 'Only .jpg and .png files are accepted'
+        ['image/jpeg', 'image/png', 'image/gif'].includes(file.type)
+      ), 'Only .jpg, .png, and .gif files are accepted'
     )
     .refine((files) =>
       Array.from(files).every(file => file.size <= 10 * 1024 * 1024),
