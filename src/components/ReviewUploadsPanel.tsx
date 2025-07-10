@@ -3,7 +3,7 @@ import { titleAPI } from '../api/axios';
 import { toastUtil } from './toast';
 import type { TTitle, TTitleChapter } from '../types/titles';
 import { getTitleDetails } from '../api/jikan';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 import { LoadingSpinner } from './LoadingSpinner';
 
 export default function ReviewUploadsPanel() {
