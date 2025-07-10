@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useParams, useSearchParams } from 'react-router-dom';
 import YourUploadsTab from '../components/YourUploadsTab';
 import type { User } from '../types/user';
+import { LoadingSpinner } from '../components/LoadingSpinner';
 
 const Profile: React.FC = () => {
   const { user, token } = useAuth();
@@ -55,7 +56,7 @@ const Profile: React.FC = () => {
     }
   };
 
-  if (!profile) return <div className="p-8 flex justify-center items-center min-h-[40vh]">Loading...</div>;
+  if (!profile) return <div className="p-8 flex justify-center items-center min-h-[40vh]"><LoadingSpinner/></div>;
 
   return (
     <div className="flex justify-center items-center min-h-[60vh] bg-gray-50">

@@ -1,4 +1,5 @@
 import React from "react";
+import { LoadingSpinner } from "../LoadingSpinner";
 
 type ImageFit = 'no-limit' | 'fit-width' | 'fit-height' | 'fit-both';
 
@@ -30,7 +31,7 @@ const ReaderImage: React.FC<ReaderImageProps> = ({
   <div className="mb-6 relative w-full flex justify-center items-center" style={{ minHeight: '60vh' }}>
     {loading && (
       <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 z-20">
-        <span className="text-gray-500">Loading image...</span>
+        <LoadingSpinner />
       </div>
     )}
     <img

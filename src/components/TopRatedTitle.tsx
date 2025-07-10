@@ -4,6 +4,7 @@ import type { TTitle } from "../types/titles";
 import TitleCard from "./TitleCard";
 import { Link } from "react-router-dom";
 import TitleCardSection from "./TitleCardSection";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 const TopRatedTitle: React.FC = () => {
   const [topRated, setTopRated] = useState<TTitle[]>([]);
@@ -23,7 +24,7 @@ const TopRatedTitle: React.FC = () => {
     fetchTopRated();
   }, []);
 
-  if (loading) return <p>Loading top rated titles...</p>;
+  if (loading) return <LoadingSpinner/>;
 
   return (
     <TitleCardSection title="Top Rated Titles" linkTo="/titles/top">

@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { useTitleDetails } from '../hooks/useTitleDetails';
 import type { TTitleRecommendation } from "../types/titles";
 import TitleCard from "./TitleCard";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 export const RecommendationCard: React.FC<{
   recommendation: TTitleRecommendation;
@@ -12,7 +13,7 @@ export const RecommendationCard: React.FC<{
   const { title: secondTitle, loading: loadingSecond } = useTitleDetails(recommendation.entry[1]?.mal_id);
 
   if (loadingFirst || loadingSecond || !firstTitle || !secondTitle) {
-    return <div className="bg-white p-4 rounded-lg shadow">Loading...</div>;
+    return <LoadingSpinner/>;
   }
 
   return (
