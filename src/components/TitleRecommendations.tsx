@@ -3,6 +3,7 @@ import { getTitleRecommendations } from "../api/jikan";
 import type { TTitleRecommendation } from "../types/titles";
 import { RecommendationCard } from "./RecommendationCard";
 import TitleCardSection from "./TitleCardSection";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 const TitleRecommendations: React.FC = () => {
   const [recommendations, setRecommendations] = useState<TTitleRecommendation[]>([]);
@@ -24,7 +25,7 @@ const TitleRecommendations: React.FC = () => {
     fetchRecommendations();
   }, []);
 
-  if (loading) return <p>Loading recommendations...</p>;
+  if (loading) return <LoadingSpinner/>;
 
   return (
     <TitleCardSection title="Recommended Titles" scrollAmount={1250}>

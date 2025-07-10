@@ -3,6 +3,7 @@ import { getTopTitle } from "../api/jikan";
 import type { TTitle } from "../types/titles";
 import TitleCard from "../components/TitleCard";
 import { Link, useNavigate } from "react-router-dom";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 
 const TopRatedTitlesPage: React.FC = () => {
   const [topRated, setTopRated] = useState<TTitle[]>([]);
@@ -54,7 +55,7 @@ const TopRatedTitlesPage: React.FC = () => {
         ))}
       </div>
 
-      {loading && <p className="mt-4">Loading...</p>}
+      {loading && <LoadingSpinner/>}
 
       {!loading && hasMore && (
         <div className="mt-6 text-center">

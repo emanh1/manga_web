@@ -4,6 +4,7 @@ import { toastUtil } from './toast';
 import type { TTitle, TTitleChapter } from '../types/titles';
 import { getTitleDetails } from '../api/jikan';
 import { Link } from 'react-router';
+import { LoadingSpinner } from './LoadingSpinner';
 
 export default function ReviewUploadsPanel() {
   const [uploads, setUploads] = useState<TTitleChapter[]>([]);
@@ -103,7 +104,7 @@ export default function ReviewUploadsPanel() {
   }
 
   if (isLoading) {
-    return <div className="text-center p-4">Loading...</div>;
+    return <LoadingSpinner/>;
   }
 
   return (

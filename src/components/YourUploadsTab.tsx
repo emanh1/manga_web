@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { getTitleDetails } from '../api/jikan';
 import type { TTitle, TTitleChapter } from '../types/titles';
 import axiosInstance from '../api/axios';
+import { LoadingSpinner } from './LoadingSpinner';
 
 interface MangaWithChapters {
   title: TTitle;
@@ -50,7 +51,7 @@ export default function YourUploadsTab({ uuid }: { uuid?: string }) {
     })();
   }, [uuid]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <LoadingSpinner/>;
   if (error) return <div className="text-red-600">{error}</div>;
   if (mangaList.length === 0) return <div>No uploads found.</div>;
 
