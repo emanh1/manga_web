@@ -2,10 +2,10 @@ import React from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { titleAPI } from "../../api/axios";
 import { useChapterReader } from "../../hooks/useChapterReader";
-import { toastUtil } from '../toast';
 import ReaderHeader from "./ReaderHeader";
 import ReaderImage from "./ReaderImage";
 import ReaderMenu from "./ReaderMenu";
+import { ReaderContext } from "./Context";
 import { useIPFSGateway } from '../../contexts/IPFSGatewayContext';
 import { IPFSGatewayProvider } from '../../contexts/IPFSGatewayContext';
 import type { TTitleChapter } from "../../types/titles";
@@ -72,82 +72,53 @@ const ReaderContent: React.FC = () => {
 
   if (loading || !chapter) return <div className="p-4">Loading...</div>;
 
-  const handlePrev = () => {
-    if (currentPage === 0 && chapterIndex !== null && chapterIndex > 0) {
-      const prev = chapterList[chapterIndex - 1];
-      navigate(`/titles/${titleId}/${prev.chapterId}?page=${pages.length - 1}`);
-    } else {
-      setCurrentPage(Math.max(0, currentPage - 1));
-    }
-  };
 
-  const handleNext = () => {
-    if (currentPage === pages.length - 1 && chapterIndex !== null && chapterIndex < chapterList.length - 1) {
-      const next = chapterList[chapterIndex + 1];
-      navigate(`/titles/${titleId}/${next.chapterId}?page=0`);
-    } else {
-      setCurrentPage(Math.min(pages.length - 1, currentPage + 1));
-    }
-  };
 
   return (
-    <div className="relative min-h-screen flex flex-col gap-8 bg-gray-50">
-      <div className="flex-1 flex flex-row items-start gap-8 w-full">
-        <div className="flex-1 flex flex-col items-center w-full">
-          <ReaderHeader
-            chapterNumber={chapter.chapterNumber ?? ''}
-            chapterTitle={chapter.chapterTitle ?? ''}
-            currentPage={currentPage}
-            totalPages={pages.length}
-            onMenuClick={() => setSidebarOpen(true)}
-          />
-          <div className="relative w-full">
-            <ReaderImage
-              key={gateway + '-' + currentPage}
-              src={gateway + pages[currentPage].filePath}
-              alt={`Page ${currentPage + 1}`}
-              imageFit={imageFit}
-              loading={imgLoading}
-              onLoad={() => setImgLoading(false)}
-              onError={() => {
-                toastUtil.error("Image failed to load.");
-                setImgLoading(false);
-              }}
-              onPrev={handlePrev}
-              onNext={handleNext}
-              canPrev={currentPage > 0 || (chapterIndex !== null && chapterIndex > 0)}
-              canNext={currentPage < pages.length - 1 || (chapterIndex !== null && chapterIndex < chapterList.length - 1)}
-            />
-          </div>
-          <div className="w-full max-w-md flex flex-col items-center gap-4">
-            <div className="flex w-full items-center gap-2 justify-between">
-              <input
-                type="range"
-                min={0}
-                max={pages.length - 1}
-                value={currentPage}
-                onChange={(e) => setCurrentPage(parseInt(e.target.value))}
-                className="w-full mx-2"
-              />
+    <ReaderContext.Provider value={{
+      chapter,
+      pages,
+      currentPage,
+      setCurrentPage,
+      loading,
+      imgLoading,
+      setImgLoading,
+      sidebarOpen,
+      setSidebarOpen,
+      chapterList,
+      chapterIndex,
+      setChapterIndex,
+      imageFit,
+      setImageFit,
+      gateway,
+      titleId,
+      chapterId,
+      navigate,
+    }}>
+      <div className="relative min-h-screen flex flex-col gap-8 bg-gray-50">
+        <div className="flex-1 flex flex-row items-start gap-8 w-full">
+          <div className="flex-1 flex flex-col items-center w-full">
+            <ReaderHeader />
+            <div className="relative w-full">
+              <ReaderImage />
+            </div>
+            <div className="w-full max-w-md flex flex-col items-center gap-4">
+              <div className="flex w-full items-center gap-2 justify-between">
+                <input
+                  type="range"
+                  min={0}
+                  max={pages.length - 1}
+                  value={currentPage}
+                  onChange={(e) => setCurrentPage(parseInt(e.target.value))}
+                  className="w-full mx-2"
+                />
+              </div>
             </div>
           </div>
         </div>
+        <ReaderMenu />
       </div>
-      <ReaderMenu
-        sidebarOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        chapterList={chapterList}
-        chapterIndex={chapterIndex}
-        chapterId={chapterId}
-        titleId={titleId}
-        navigate={navigate}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        pages={pages}
-        imageFit={imageFit}
-        setImageFit={setImageFit}
-      />
-    </div>
+    </ReaderContext.Provider>
   );
 };
 

@@ -1,45 +1,30 @@
+
 import React from "react";
 import GatewaySelector from "../GatewaySelector";
+import { useReaderContext } from './Context';
 
-type ImageFit = 'no-limit' | 'fit-width' | 'fit-height' | 'fit-both';
-import type { TTitleChapter } from "../../types/titles";
-
-interface ReaderMenuProps {
-  sidebarOpen: boolean;
-  onClose: () => void;
-  chapterList: TTitleChapter[];
-  chapterIndex: number | null;
-  chapterId: string | undefined;
-  titleId: string | undefined;
-  navigate: (url: string) => void;
-  currentPage: number;
-  setCurrentPage: (n: number) => void;
-  pages: any[];
-  imageFit: ImageFit;
-  setImageFit: (fit: ImageFit) => void;
-}
-
-const ReaderMenu: React.FC<ReaderMenuProps> = ({
-  sidebarOpen,
-  onClose,
-  chapterList,
-  chapterIndex,
-  chapterId,
-  titleId,
-  navigate,
-  currentPage,
-  setCurrentPage,
-  pages,
-  imageFit,
-  setImageFit,
-}) => {
+const ReaderMenu: React.FC = () => {
+  const {
+    sidebarOpen,
+    setSidebarOpen,
+    chapterList,
+    chapterIndex,
+    chapterId,
+    titleId,
+    navigate,
+    currentPage,
+    setCurrentPage,
+    pages,
+    imageFit,
+    setImageFit,
+  } = useReaderContext();
   if (!sidebarOpen) return null;
   return (
     <>
       <div
         className="fixed inset-0 z-40"
         style={{ pointerEvents: 'auto' }}
-        onClick={onClose}
+        onClick={() => setSidebarOpen(false)}
         aria-label="Close menu overlay"
       />
       <aside className="fixed right-0 top-0 h-full w-96 max-w-full bg-white shadow-2xl flex flex-col animate-slideIn z-50 border-l border-gray-200">
@@ -47,7 +32,7 @@ const ReaderMenu: React.FC<ReaderMenuProps> = ({
           <h2 className="text-xl font-bold tracking-tight">Menu</h2>
           <button
             className="ml-2 text-gray-400 hover:text-gray-700 text-2xl"
-            onClick={onClose}
+            onClick={() => setSidebarOpen(false)}
             title="Hide Menu"
           >
             <span aria-hidden>×</span>
