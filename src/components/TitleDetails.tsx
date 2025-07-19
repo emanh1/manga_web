@@ -9,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { FaClock, FaEye, FaUser, FaStar, FaUpload, FaPlus } from 'react-icons/fa';
 import { getTitlePictures } from "../api/jikan";
 import type { TTitlePicture } from "../types/titlePictures";
+import { TitleDetailsContext, useTitleDetailsContext } from "./TitleDetailsContext";
 
 function sortVolumes(a: [string | number, TTitleChapter[]], b: [string | number, TTitleChapter[]]) {
   if (a[0] === 'Other') return -1;
@@ -20,55 +21,52 @@ function sortChaptersDesc(a: TTitleChapter, b: TTitleChapter) {
   return (b.chapterNumber ?? 0) - (a.chapterNumber ?? 0);
 }
 
-const ChapterListItem: React.FC<{
-  chapter: TTitleChapter;
-  titleId: string | undefined;
-  navigate: ReturnType<typeof useNavigate>;
-}> = ({ chapter, titleId, navigate }) => (
-  <li
-    key={chapter.chapterId}
-    onClick={() => navigate(`/titles/${titleId}/${chapter.chapterId}`)}
-    className="py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-4"
-  >
-    <div className="flex-1 min-w-0">
-      <div className="font-medium truncate">
-        {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special Chapter'}
-        {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
+const ChapterListItem: React.FC<{ chapter: TTitleChapter }> = ({ chapter }) => {
+  const { titleId, navigate } = useTitleDetailsContext();
+  return (
+    <li
+      key={chapter.chapterId}
+      onClick={() => navigate(`/titles/${titleId}/${chapter.chapterId}`)}
+      className="py-3 px-2 hover:bg-gray-50 transition-colors cursor-pointer flex items-center gap-4"
+    >
+      <div className="flex-1 min-w-0">
+        <div className="font-medium truncate">
+          {chapter.chapterNumber ? `Chapter ${chapter.chapterNumber}` : 'Special Chapter'}
+          {chapter.chapterTitle && `: ${chapter.chapterTitle}`}
+        </div>
+        <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
+          <span><FaClock className="inline-block align-middle mr-1 text-sm"/> {formatDistanceToNow(new Date(chapter.createdAt), {addSuffix: true})}</span>
+          <span>
+            <FaEye className="inline-block align-middle mr-1 text-sm"/> {chapter.viewCount}
+          </span>
+        </div>
       </div>
-      <div className="flex items-center gap-4 text-xs text-gray-500 mt-1">
-        <span><FaClock className="inline-block align-middle mr-1 text-sm"/> {formatDistanceToNow(new Date(chapter.createdAt), {addSuffix: true})}</span>
-        <span>
-          <FaEye className="inline-block align-middle mr-1 text-sm"/> {chapter.viewCount}
-        </span>
+      <div className="flex flex-col items-end min-w-[120px]">
+        <div className="text-xs text-gray-600">
+          <Link
+            to={`/profile/${chapter.uploader.userId}`}
+            className="text-purple-600 hover:underline"
+            onClick={e => e.stopPropagation()}
+          >
+            <FaUser className="inline-block align-middle mr-1 text-sm"/> {chapter.uploader.username}
+          </Link>
+        </div>
       </div>
-    </div>
-    <div className="flex flex-col items-end min-w-[120px]">
-      <div className="text-xs text-gray-600">
-        <Link
-          to={`/profile/${chapter.uploader.userId}`}
-          className="text-purple-600 hover:underline"
-          onClick={e => e.stopPropagation()}
-        >
-          <FaUser className="inline-block align-middle mr-1 text-sm"/> {chapter.uploader.username}
-        </Link>
-      </div>
-    </div>
-  </li>
-);
+    </li>
+  );
+};
 
 const VolumeSection: React.FC<{
   volume: string | number;
   chapters: TTitleChapter[];
-  titleId: string | undefined;
-  navigate: ReturnType<typeof useNavigate>;
-}> = ({ volume, chapters, titleId, navigate }) => (
+}> = ({ volume, chapters }) => (
   <div className="bg-white rounded-lg shadow p-4">
     <h3 className="text-lg font-semibold mb-3">
       {volume === 'Other' ? 'No volume' : `Volume ${volume}`}
     </h3>
     <ul className="divide-y divide-gray-200">
       {chapters.sort(sortChaptersDesc).map((chapter) => (
-        <ChapterListItem key={chapter.chapterId} chapter={chapter} titleId={titleId} navigate={navigate} />
+        <ChapterListItem key={chapter.chapterId} chapter={chapter} />
       ))}
     </ul>
   </div>
@@ -103,204 +101,209 @@ const TitleSection: React.FC<{ title: TTitle }> = ({ title }) => {
 };
 
 //TODO implement library management and rating functionality
-const ActionButtons: React.FC<{ user: any; titleId: string | undefined; navigate: ReturnType<typeof useNavigate> }> = ({ user, titleId, navigate }) => (
-  <div className="flex flex-row gap-3 items-center mt-2">
-    <button
-      className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors text-sm font-medium"
-      type="button"
-    >
-      <FaPlus className="text-base" /> Add to Library 
-    </button> 
-    <button
-      className="flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-md hover:bg-yellow-200 transition-colors text-sm font-medium"
-      type="button"
-    >
-      <FaStar className="text-base" /> Rate
-    </button>
-    {user && (
+const ActionButtons: React.FC<{ user: any }> = ({ user }) => {
+  const { titleId, navigate } = useTitleDetailsContext();
+  return (
+    <div className="flex flex-row gap-3 items-center mt-2">
       <button
-        onClick={() => navigate(`/upload/${titleId}`)}
-        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
+        className="flex items-center gap-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors text-sm font-medium"
         type="button"
       >
-        <FaUpload className="text-base" /> Upload
+        <FaPlus className="text-base" /> Add to Library 
+      </button> 
+      <button
+        className="flex items-center gap-2 px-4 py-2 bg-yellow-100 text-yellow-800 rounded-md hover:bg-yellow-200 transition-colors text-sm font-medium"
+        type="button"
+      >
+        <FaStar className="text-base" /> Rate
       </button>
-    )}
-  </div>
-);
+      {user && (
+        <button
+          onClick={() => navigate(`/upload/${titleId}`)}
+          className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm font-medium"
+          type="button"
+        >
+          <FaUpload className="text-base" /> Upload
+        </button>
+      )}
+    </div>
+  );
+};
 
-const TagsAndStatus: React.FC<{ title: any }> = ({ title }) => (
-  <div className="mb-6 space-y-2">
-    {/* Serializations */}
-    {title.serializations.length > 0 && (
+const TagsAndStatus: React.FC<{ title?: any }> = () => {
+  const { title } = useTitleDetails();
+  if (!title) return null;
+  return (
+    <div className="mb-6 space-y-2">
+      {/* Serializations */}
+      {title.serializations.length > 0 && (
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="font-semibold">Serialization:</span>
+          {title.serializations.map((s: TMALEntity) => (
+            <span key={s.mal_id} className="inline-block text-xs bg-yellow-100 text-yellow-800 rounded px-2 py-0.5 mr-1">{s.name}</span>
+          ))}
+        </div>
+      )}
       <div className="flex flex-wrap gap-2 items-center">
-        <span className="font-semibold">Serialization:</span>
-        {title.serializations.map((s: TMALEntity) => (
-          <span key={s.mal_id} className="inline-block text-xs bg-yellow-100 text-yellow-800 rounded px-2 py-0.5 mr-1">{s.name}</span>
-        ))}
+        <span className="font-semibold">Authors:</span>
+        {title.authors.length > 0 ? (
+          title.authors.map((a: TMALEntity, i: number) => (
+            <span key={a.mal_id} className="inline-block text-sm bg-gray-200 rounded px-2 py-0.5 mr-1">
+              {a.name}{i < title.authors.length - 1 ? ',' : ''}
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-500">Unknown</span>
+        )}
       </div>
-    )}
-    <div className="flex flex-wrap gap-2 items-center">
-      <span className="font-semibold">Authors:</span>
-      {title.authors.length > 0 ? (
-        title.authors.map((a: TMALEntity, i: number) => (
-          <span key={a.mal_id} className="inline-block text-sm bg-gray-200 rounded px-2 py-0.5 mr-1">
-            {a.name}{i < title.authors.length - 1 ? ',' : ''}
-          </span>
-        ))
-      ) : (
-        <span className="text-gray-500">Unknown</span>
-      )}
+      <div className="flex flex-wrap gap-2 items-center">
+        <span className="font-semibold">Demographic:</span>
+        {title.demographics.length > 0 ? (
+          title.demographics.map((d: TMALEntity) => (
+            <span key={d.mal_id} className="inline-block text-xs bg-green-100 text-green-800 rounded px-2 py-0.5 mr-1">
+              {d.name}
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-500">-</span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2 items-center">
+        <span className="font-semibold">Genres:</span>
+        {title.genres.length > 0 ? (
+          title.genres.map((g: TMALEntity) => (
+            <span key={g.mal_id} className="inline-block text-xs bg-gray-200 text-gray-800 rounded px-2 py-0.5 mr-1">
+              {g.name}
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-500">-</span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2 items-center">
+        <span className="font-semibold">Explicit Genres:</span>
+        {title.explicit_genres.length > 0 ? (
+          title.explicit_genres.map((g: TMALEntity) => (
+            <span key={g.mal_id} className="inline-block text-xs bg-red-200 text-red-800 rounded px-2 py-0.5 mr-1">
+              {g.name}
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-500">-</span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2 items-center">
+        <span className="font-semibold">Themes:</span>
+        {title.themes.length > 0 ? (
+          title.themes.map((t: TMALEntity) => (
+            <span key={t.mal_id} className="inline-block text-xs bg-purple-100 text-purple-800 rounded px-2 py-0.5 mr-1">
+              {t.name}
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-500">-</span>
+        )}
+      </div>
     </div>
-    <div className="flex flex-wrap gap-2 items-center">
-      <span className="font-semibold">Demographic:</span>
-      {title.demographics.length > 0 ? (
-        title.demographics.map((d: TMALEntity) => (
-          <span key={d.mal_id} className="inline-block text-xs bg-green-100 text-green-800 rounded px-2 py-0.5 mr-1">
-            {d.name}
-          </span>
-        ))
-      ) : (
-        <span className="text-gray-500">-</span>
-      )}
-    </div>
-    <div className="flex flex-wrap gap-2 items-center">
-      <span className="font-semibold">Genres:</span>
-      {title.genres.length > 0 ? (
-        title.genres.map((g: TMALEntity) => (
-          <span key={g.mal_id} className="inline-block text-xs bg-gray-200 text-gray-800 rounded px-2 py-0.5 mr-1">
-            {g.name}
-          </span>
-        ))
-      ) : (
-        <span className="text-gray-500">-</span>
-      )}
-    </div>
-    <div className="flex flex-wrap gap-2 items-center">
-      <span className="font-semibold">Explicit Genres:</span>
-      {title.explicit_genres.length > 0 ? (
-        title.explicit_genres.map((g: TMALEntity) => (
-          <span key={g.mal_id} className="inline-block text-xs bg-red-200 text-red-800 rounded px-2 py-0.5 mr-1">
-            {g.name}
-          </span>
-        ))
-      ) : (
-        <span className="text-gray-500">-</span>
-      )}
-    </div>
-    <div className="flex flex-wrap gap-2 items-center">
-      <span className="font-semibold">Themes:</span>
-      {title.themes.length > 0 ? (
-        title.themes.map((t: TMALEntity) => (
-          <span key={t.mal_id} className="inline-block text-xs bg-purple-100 text-purple-800 rounded px-2 py-0.5 mr-1">
-            {t.name}
-          </span>
-        ))
-      ) : (
-        <span className="text-gray-500">-</span>
-      )}
-    </div>
-  </div>
-);
+  );
+};
 
 const Description: React.FC<{ synopsis?: string }> = ({ synopsis }) => (
   <p className="text-gray-600 mb-4">{synopsis || "No synopsis found"}</p>
 );
 
-const InfoBar: React.FC<{ title: any }> = ({ title }) => (
-  <div className="flex flex-wrap gap-2 items-center mt-4">
-      {title.genres.length > 0 ? (
-        title.genres.map((g: TMALEntity) => (
-          <span key={g.mal_id} className="inline-block text-xs bg-gray-200 text-gray-800 rounded px-2 py-0.5 mr-1">
-            {g.name}
-          </span>
-        ))
-      ) : (
-        <span className="text-gray-500">-</span>
-      )}
-      {title.themes.length > 0 ? (
-        title.themes.map((t: TMALEntity) => (
-          <span key={t.mal_id} className="inline-block text-xs bg-purple-100 text-purple-800 rounded px-2 py-0.5 mr-1">
-            {t.name}
-          </span>
-        ))
-      ) : (
-        <span className="text-gray-500">-</span>
-      )}
+const InfoBar: React.FC = () => {
+  const { title } = useTitleDetails();
+  if (!title) return null;
+  return (
+    <div className="flex flex-wrap gap-2 items-center mt-4">
+        {title.genres.length > 0 ? (
+          title.genres.map((g: TMALEntity) => (
+            <span key={g.mal_id} className="inline-block text-xs bg-gray-200 text-gray-800 rounded px-2 py-0.5 mr-1">
+              {g.name}
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-500">-</span>
+        )}
+        {title.themes.length > 0 ? (
+          title.themes.map((t: TMALEntity) => (
+            <span key={t.mal_id} className="inline-block text-xs bg-purple-100 text-purple-800 rounded px-2 py-0.5 mr-1">
+              {t.name}
+            </span>
+          ))
+        ) : (
+          <span className="text-gray-500">-</span>
+        )}
 
-      <span className="font-semibold">Publication:</span>
-      <span className="flex items-center gap-1">
-        <span
-          className={`inline-block w-3 h-3 rounded-full ${title.status === 'Publishing' ? 'bg-green-500' : 'bg-blue-400'}`}
-        ></span>
-        <span className="text-xs text-gray-700">{title.status}</span>
-      </span>
-  </div>
-);
+        <span className="font-semibold">Publication:</span>
+        <span className="flex items-center gap-1">
+          <span
+            className={`inline-block w-3 h-3 rounded-full ${title.status === 'Publishing' ? 'bg-green-500' : 'bg-blue-400'}`}
+          ></span>
+          <span className="text-xs text-gray-700">{title.status}</span>
+        </span>
+    </div>
+  );
+};
 
-const ChaptersTab: React.FC<{
-  loading: boolean;
-  chapters: TTitleChapter[];
-  chaptersByVolume: Record<string | number, TTitleChapter[]>;
-  titleId: string | undefined;
-  navigate: ReturnType<typeof useNavigate>;
-}> = ({ loading, chapters, chaptersByVolume, titleId, navigate }) => (
-  <div>
-    {loading ? (
-      <div>Loading chapters...</div>
-    ) : chapters.length > 0 ? (
-      <div className="space-y-6">
-        {Object.entries(chaptersByVolume)
-          .sort(sortVolumes)
-          .map(([volume, volumeChapters]) => (
-            <VolumeSection
-              key={volume}
-              volume={volume}
-              chapters={volumeChapters}
-              titleId={titleId}
-              navigate={navigate}
-            />
-          ))}
-      </div>
-    ) : (
-      <div className="text-gray-600">
-        No chapters have been uploaded yet.
-      </div>
-    )}
-  </div>
-);
+const ChaptersTab: React.FC = () => {
+  const { loading, chapters, chaptersByVolume } = useTitleDetailsContext();
+  return (
+    <div>
+      {loading ? (
+        <div>Loading chapters...</div>
+      ) : chapters.length > 0 ? (
+        <div className="space-y-6">
+          {Object.entries(chaptersByVolume)
+            .sort(sortVolumes)
+            .map(([volume, volumeChapters]) => (
+              <VolumeSection
+                key={volume}
+                volume={volume}
+                chapters={volumeChapters}
+              />
+            ))}
+        </div>
+      ) : (
+        <div className="text-gray-600">
+          No chapters have been uploaded yet.
+        </div>
+      )}
+    </div>
+  );
+};
 
 const CommentsTab: React.FC = () => (
   <div className="text-gray-600">Comments section coming soon.</div>
 );
 
-const ArtTab: React.FC<{
-  artLoading: boolean;
-  artError: string | null;
-  artImages: TTitlePicture[];
-}> = ({ artLoading, artError, artImages }) => (
-  <div>
-    <h2 className="text-2xl font-bold mb-4">Art</h2>
-    {artLoading ? (
-      <div>Loading chapter covers</div>
-    ) : artError ? (
-      <div className="text-red-500">{artError}</div>
-    ) : artImages.length > 0 ? (
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {artImages.map((img, idx) => (
-          <img
-            key={idx}
-            src={img.jpg.image_url}
-            alt={`Art ${idx + 1}`}
-            className="w-full rounded shadow"
-          />
-        ))}
-      </div>
-    ) : (
-      <div className="text-gray-600">No images found.</div>
-    )}
-  </div>
-);
+const ArtTab: React.FC = () => {
+  const { artLoading, artError, artImages } = useTitleDetailsContext();
+  return (
+    <div>
+      <h2 className="text-2xl font-bold mb-4">Art</h2>
+      {artLoading ? (
+        <div>Loading chapter covers</div>
+      ) : artError ? (
+        <div className="text-red-500">{artError}</div>
+      ) : artImages.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {artImages.map((img, idx) => (
+            <img
+              key={idx}
+              src={img.jpg.image_url}
+              alt={`Art ${idx + 1}`}
+              className="w-full rounded shadow"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-gray-600">No images found.</div>
+      )}
+    </div>
+  );
+};
 
 const TitleDetails: React.FC = () => {
   const { titleId } = useParams();
@@ -366,65 +369,70 @@ const TitleDetails: React.FC = () => {
         aria-hidden="true"
       />
       {/* Foreground */}
-      <div className="relative z-10">
-        <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
-          <div className="flex flex-col md:flex-row gap-8 items-stretch">
-            <CoverImage src={coverUrl} alt={title.title} />
-            <div className="flex-1 w-full">
-              <TitleSection title={title} />
-              <div className="mt-4">
-                <ActionButtons user={user} titleId={titleId} navigate={navigate} />
+      <TitleDetailsContext.Provider value={{
+        titleId,
+        chapters,
+        chaptersByVolume,
+        loading,
+        artImages,
+        artLoading,
+        artError,
+        navigate
+      }}>
+        <div className="relative z-10">
+          <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
+            <div className="flex flex-col md:flex-row gap-8 items-stretch">
+              <CoverImage src={coverUrl} alt={title.title} />
+              <div className="flex-1 w-full">
+                <TitleSection title={title} />
+                <div className="mt-4">
+                <ActionButtons user={user} />
               </div>
-              <InfoBar title={title} />
+              <InfoBar />
+              </div>
+            </div>
+            <div className="mt-6">
+              <Description synopsis={title.synopsis} />
             </div>
           </div>
-          <div className="mt-6">
-            <Description synopsis={title.synopsis} />
+          <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
+            <div className="flex space-x-2 border-b mb-4">
+              {TABS.map((tab, idx) => (
+                <button
+                  key={tab.label}
+                  className={`px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-colors ${
+                    selectedTab === idx
+                      ? "border-indigo-600 text-indigo-700"
+                      : "border-transparent text-gray-500 hover:text-indigo-600"
+                  }`}
+                  onClick={() => setSelectedTab(idx)}
+                  type="button"
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="max-w-6xl mx-auto px-2 md:px-8 mt-8">
-          <div className="flex space-x-2 border-b mb-4">
-            {TABS.map((tab, idx) => (
-              <button
-                key={tab.label}
-                className={`px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-colors ${
-                  selectedTab === idx
-                    ? "border-indigo-600 text-indigo-700"
-                    : "border-transparent text-gray-500 hover:text-indigo-600"
-                }`}
-                onClick={() => setSelectedTab(idx)}
-                type="button"
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-2 md:px-8">
-          <div className="flex flex-col justify-start items-start w-full">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-2 md:px-8">
+            <div className="flex flex-col justify-start items-start w-full">
             {selectedTab === 0 && (
-              <TagsAndStatus title={title} />
+              <TagsAndStatus />
             )}
-          </div>
-          <div className="md:col-span-2 flex flex-col justify-start items-start w-full">
-            <div className="w-full">
-              {selectedTab === 0 && (
-                <ChaptersTab
-                  loading={loading}
-                  chapters={chapters}
-                  chaptersByVolume={chaptersByVolume}
-                  titleId={titleId}
-                  navigate={navigate}
-                />
-              )}
-              {selectedTab === 1 && <CommentsTab />}
-              {selectedTab === 2 && (
-                <ArtTab artLoading={artLoading} artError={artError} artImages={artImages} />
-              )}
+            </div>
+            <div className="md:col-span-2 flex flex-col justify-start items-start w-full">
+              <div className="w-full">
+                {selectedTab === 0 && (
+                  <ChaptersTab />
+                )}
+                {selectedTab === 1 && <CommentsTab />}
+                {selectedTab === 2 && (
+                  <ArtTab />
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </TitleDetailsContext.Provider>
     </>
   );
 };
