@@ -1,33 +1,75 @@
-# manga_web 📚✨
+# Nuxt Minimal Starter
 
-## Features 🚀
-- 🔍 **Search Titles**
-- ⬆️ **Upload Chapters w/ IPFS Integration**
-- 👤 **User Accounts**
-- 🛡️ **Review uploaded chapters**
+Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
 
-## Getting Started 🏁
+## Setup
 
-### Prerequisites
-- [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
-- [Node.js](https://nodejs.org/) (for local dev)
+Make sure to install dependencies:
 
-### Quick Start
-To host the frontend (@ http://localhost:80):
 ```bash
-git clone https://github.com/emanh1/manga_web
-cd manga_web
-docker compose up -d
+# npm
+npm install
+
+# pnpm
+pnpm install
+
+# yarn
+yarn install
+
+# bun
+bun install
 ```
-To host the backend: https://github.com/emanh1/backend
 
-### Manual Setup
-   ```bash
-   git clone https://github.com/emanh1/manga_web
-   cd frontend
-   npm install
-   npm run dev
-   ```
+## Development Server
 
-## Contributing 🤝
-Pull requests and issues are welcome! Please open an issue to discuss your ideas or report bugs.
+Start the development server on `http://localhost:3000`:
+
+```bash
+# npm
+npm run dev
+
+# pnpm
+pnpm dev
+
+# yarn
+yarn dev
+
+# bun
+bun run dev
+```
+
+## Production
+
+Build the application for production:
+
+```bash
+# npm
+npm run build
+
+# pnpm
+pnpm build
+
+# yarn
+yarn build
+
+# bun
+bun run build
+```
+
+Locally preview production build:
+
+```bash
+# npm
+npm run preview
+
+# pnpm
+pnpm preview
+
+# yarn
+yarn preview
+
+# bun
+bun run preview
+```
+
+Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
