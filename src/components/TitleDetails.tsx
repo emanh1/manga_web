@@ -69,8 +69,8 @@ const TitleDetails: React.FC = () => {
               <button
                 key={tab.label}
                 className={`px-4 py-2 text-sm font-medium focus:outline-none border-b-2 transition-colors ${selectedTab === idx
-                    ? "border-indigo-600 text-indigo-700"
-                    : "border-transparent text-gray-500 hover:text-indigo-600"
+                  ? "border-indigo-600 text-indigo-700"
+                  : "border-transparent text-gray-500 hover:text-indigo-600"
                   }`}
                 onClick={() => setSelectedTab(idx)}
                 type="button"
@@ -82,9 +82,7 @@ const TitleDetails: React.FC = () => {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto px-2 md:px-8">
           <div className="flex flex-col justify-start items-start w-full">
-            {selectedTab === 0 && (
-              <TagsAndStatus title={title} />
-            )}
+            <TagsAndStatus title={title} />
           </div>
           <div className="md:col-span-2 flex flex-col justify-start items-start w-full">
             <div className="w-full">
